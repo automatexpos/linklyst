@@ -31,15 +31,15 @@
   <a href="{{ url_for('dashboard') if user else url_for('login', next='dashboard') }}" class="logo">Linklyst</a>
       <div class="nav-right">
         {% if user %}
-          <a href="{{ url_for('dashboard') }}">Dashboard</a>
           {% set excluded_pages = ['public_profile', 'login', 'register', 'logout'] %}
           {% if request.endpoint not in excluded_pages %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
             <button class="nav-btn" onclick="openDashboardModal('profile-modal')">Profile Settings</button>
             <button class="nav-btn" onclick="openDashboardModal('categories-modal')">Categories</button>
+            <form method="post" action="{{ url_for('logout') }}" style="display:inline; margin: 0;">
+              <button class="link-btn" type="submit">Sign out</button>
+            </form>
           {% endif %}
-          <form method="post" action="{{ url_for('logout') }}" style="display:inline; margin: 0;">
-            <button class="link-btn" type="submit">Sign out</button>
-          </form>
         {% else %}
           <a href="{{ url_for('register') }}">Sign up</a>
           <a href="{{ url_for('login') }}">Sign in</a>

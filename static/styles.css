@@ -873,7 +873,6 @@ textarea {
   margin-bottom: var(--space-3);
   border-bottom: 1px solid var(--border-light);
 }
-}
 
 .bio {
   color: var(--text-secondary);
