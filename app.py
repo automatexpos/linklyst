@@ -130,12 +130,12 @@ def get_user_analytics(user_id):
         except:
             categories_count = 0
         
-        # Get brands count
+        # Get subcategories count
         try:
-            brands_res = supabase.table("brands").select("id", count="exact").eq("user_id", user_id).execute()
-            brands_count = brands_res.count or 0
+            subcategories_res = supabase.table("subcategories").select("id", count="exact").eq("user_id", user_id).execute()
+            subcategories_count = subcategories_res.count or 0
         except:
-            brands_count = 0
+            subcategories_count = 0
         
         # Get trending links (top 2 links with highest click counts)
         trending_links = []
@@ -163,13 +163,13 @@ def get_user_analytics(user_id):
             except Exception as e:
                 print(f"Debug: Error getting trending links: {str(e)}")
         
-        print(f"Debug: Analytics - Links: {total_links}, Clicks: {total_clicks}, Categories: {categories_count}, Brands: {brands_count}")
+        print(f"Debug: Analytics - Links: {total_links}, Clicks: {total_clicks}, Categories: {categories_count}, Subcategories: {subcategories_count}")
         
         return {
             "total_links": total_links,
             "total_clicks": total_clicks,
             "categories_count": categories_count,
-            "brands_count": brands_count,
+            "subcategories_count": subcategories_count,
             "trending_links": trending_links
         }
         
@@ -180,7 +180,7 @@ def get_user_analytics(user_id):
             "total_links": 0,
             "total_clicks": 0,
             "categories_count": 0,
-            "brands_count": 0,
+            "subcategories_count": 0,
             "trending_links": []
         }
 
@@ -455,10 +455,14 @@ def dashboard():
     try:
         categories = supabase.table("categories").select("*").eq("user_id", u["id"]).eq("is_active", True).order("sort_order").execute().data
         
-        # Get brand count for each category
+        # Get subcategory count and direct links count for each category
         for category in categories:
-            brand_count = supabase.table("brands").select("id", count="exact").eq("category_id", category["id"]).eq("is_active", True).execute().count
-            category["brand_count"] = brand_count or 0
+            subcategory_count = supabase.table("subcategories").select("id", count="exact").eq("category_id", category["id"]).eq("is_active", True).execute().count
+            category["subcategory_count"] = subcategory_count or 0
+            
+            # Get direct links count (links directly attached to category)
+            direct_links_count = supabase.table("links").select("id", count="exact").eq("category_id", category["id"]).eq("is_active", True).execute().count
+            category["direct_links_count"] = direct_links_count or 0
             
     except Exception as e:
         # If categories table doesn't exist yet, fall back to empty list
@@ -530,7 +534,7 @@ def add_category():
 
 @app.route("/category/<int:category_id>")
 @login_required
-def category_brands(category_id):
+def category_subcategories(category_id):
     u = current_user()
     
     # Get category
@@ -539,20 +543,23 @@ def category_brands(category_id):
         abort(404)
     category = category_res.data[0]
     
-    # Get brands
-    brands = supabase.table("brands").select("*").eq("category_id", category_id).eq("is_active", True).order("sort_order").execute().data
+    # Get subcategories
+    subcategories = supabase.table("subcategories").select("*").eq("category_id", category_id).eq("is_active", True).order("sort_order").execute().data
     
-    # Add link count for each brand
-    for brand in brands:
-        link_count = supabase.table("links").select("id", count="exact").eq("brand_id", brand["id"]).execute().count
-        brand["link_count"] = link_count or 0
+    # Add link count for each subcategory
+    for subcategory in subcategories:
+        link_count = supabase.table("links").select("id", count="exact").eq("subcategory_id", subcategory["id"]).execute().count
+        subcategory["link_count"] = link_count or 0
     
-    return render_template("brands.html", category=category, brands=brands, user=u)
+    # Get direct links for this category (links not in subcategories)
+    direct_links = supabase.table("links").select("*").eq("category_id", category_id).eq("is_active", True).order("sort_order").execute().data
+    
+    return render_template("subcategories.html", category=category, subcategories=subcategories, direct_links=direct_links, user=u)
 
-# --- Brands ---
-@app.route("/category/<int:category_id>/brand/add", methods=["POST"])
+# --- Subcategories ---
+@app.route("/category/<int:category_id>/subcategory/add", methods=["POST"])
 @login_required
-def add_brand(category_id):
+def add_subcategory(category_id):
     u = current_user()
     
     # Verify category ownership
@@ -562,15 +569,12 @@ def add_brand(category_id):
     
     name = request.form.get("name", "").strip()
     description = request.form.get("description", "").strip()
-    website_url = request.form.get("website_url", "").strip()
-    logo_url = None
+    color = request.form.get("color", "#6366f1").strip()
+    icon_url = None
     
     if not name:
-        flash("Brand name is required", "danger")
-        return redirect(url_for("category_brands", category_id=category_id))
-    
-    if website_url:
-        website_url = normalize_url(website_url)
+        flash("Subcategory name is required", "danger")
+        return redirect(url_for("category_subcategories", category_id=category_id))
     
     # Handle icon file upload
     if 'icon_file' in request.files:
@@ -580,61 +584,62 @@ def add_brand(category_id):
                 # Upload to Cloudinary
                 upload_result = cloudinary.uploader.upload(
                     icon_file,
-                    folder="linktree_icons/brands",
+                    folder="linktree_icons/subcategories",
                     transformation=[
                         {"width": 64, "height": 64, "crop": "fill"},
                         {"quality": "auto", "fetch_format": "auto"}
                     ]
                 )
-                logo_url = upload_result['secure_url']
+                icon_url = upload_result['secure_url']
             except Exception as e:
                 flash(f"Failed to upload icon: {str(e)}", "danger")
-                return redirect(url_for("category_brands", category_id=category_id))
+                return redirect(url_for("category_subcategories", category_id=category_id))
     
     try:
         # Get max sort_order
-        max_res = supabase.table("brands").select("sort_order").eq("category_id", category_id).order("sort_order", desc=True).limit(1).execute()
+        max_res = supabase.table("subcategories").select("sort_order").eq("category_id", category_id).order("sort_order", desc=True).limit(1).execute()
         max_order = max_res.data[0]["sort_order"] if max_res.data else 0
         
-        supabase.table("brands").insert({
+        supabase.table("subcategories").insert({
             "category_id": category_id,
             "user_id": u["id"],
             "name": name,
             "description": description,
-            "website_url": website_url,
-            "logo_url": logo_url,
+            "color": color,
+            "icon_url": icon_url,
             "sort_order": max_order + 1
         }).execute()
-        flash("Brand added successfully", "success")
+        flash("Subcategory added successfully", "success")
     except Exception as e:
-        flash("Error adding brand. Name might already exist in this category.", "danger")
+        flash("Error adding subcategory. Name might already exist in this category.", "danger")
     
-    return redirect(url_for("category_brands", category_id=category_id))
+    return redirect(url_for("category_subcategories", category_id=category_id))
 
-@app.route("/brand/<int:brand_id>")
+@app.route("/subcategory/<int:subcategory_id>")
 @login_required
-def brand_links(brand_id):
+def subcategory_links(subcategory_id):
     u = current_user()
     
-    # Get brand and verify access
-    brand_res = supabase.table("brands").select("*, categories!inner(*)").eq("id", brand_id).eq("categories.user_id", u["id"]).execute()
-    if not brand_res.data:
+    # Get subcategory and verify access
+    subcategory_res = supabase.table("subcategories").select("*, categories!inner(*)").eq("id", subcategory_id).eq("categories.user_id", u["id"]).execute()
+    if not subcategory_res.data:
         abort(404)
-    brand = brand_res.data[0]
+    subcategory = subcategory_res.data[0]
     
-    # Get links for this brand
-    links = supabase.table("links").select("*").eq("brand_id", brand_id).order("sort_order").execute().data
+    # Get links for this subcategory
+    links = supabase.table("links").select("*").eq("subcategory_id", subcategory_id).order("sort_order").execute().data
     
-    return render_template("brand_links.html", brand=brand, links=links, user=u)
+    return render_template("subcategory_links.html", subcategory=subcategory, links=links, user=u)
 
-@app.route("/brand/<int:brand_id>/link/add", methods=["POST"])
+# Add link to subcategory
+@app.route("/subcategory/<int:subcategory_id>/link/add", methods=["POST"])
 @login_required
-def add_link(brand_id):
+def add_link_to_subcategory(subcategory_id):
     u = current_user()
     
-    # Verify brand access
-    brand_res = supabase.table("brands").select("*, categories!inner(*)").eq("id", brand_id).eq("categories.user_id", u["id"]).execute()
-    if not brand_res.data:
+    # Verify subcategory access
+    subcategory_res = supabase.table("subcategories").select("*, categories!inner(*)").eq("id", subcategory_id).eq("categories.user_id", u["id"]).execute()
+    if not subcategory_res.data:
         abort(404)
     
     title = request.form.get("title","").strip()
@@ -643,20 +648,19 @@ def add_link(brand_id):
     
     if not title or not url:
         flash("Title and URL required","danger")
-        return redirect(url_for("brand_links", brand_id=brand_id))
+        return redirect(url_for("subcategory_links", subcategory_id=subcategory_id))
     
     # Normalize URL to include protocol
     url = normalize_url(url)
     
-    # get max sort_order for this brand
-    links_res = supabase.table("links").select("sort_order").eq("brand_id", brand_id).order("sort_order",desc=True).limit(1).execute()
+    # get max sort_order for this subcategory
+    links_res = supabase.table("links").select("sort_order").eq("subcategory_id", subcategory_id).order("sort_order",desc=True).limit(1).execute()
     max_pos = links_res.data[0]["sort_order"] if links_res.data else 0
     pos = max_pos + 1
     
     try:
         supabase.table("links").insert({
-            "brand_id": brand_id,
-            "user_id": u["id"],  # Add user_id field
+            "subcategory_id": subcategory_id,
             "title": title,
             "url": url,
             "description": description,
@@ -667,7 +671,126 @@ def add_link(brand_id):
     except Exception as e:
         flash("Error adding link. Please check the URL format.","danger")
         
-    return redirect(url_for("brand_links", brand_id=brand_id))
+    return redirect(url_for("subcategory_links", subcategory_id=subcategory_id))
+
+# Add link directly to category
+@app.route("/category/<int:category_id>/link/add", methods=["POST"])
+@login_required
+def add_link_to_category(category_id):
+    u = current_user()
+    
+    # Verify category access
+    category_res = supabase.table("categories").select("*").eq("id", category_id).eq("user_id", u["id"]).execute()
+    if not category_res.data:
+        abort(404)
+    
+    title = request.form.get("title","").strip()
+    url = request.form.get("url","").strip()
+    description = request.form.get("description","").strip()
+    
+    if not title or not url:
+        flash("Title and URL required","danger")
+        return redirect(url_for("category_subcategories", category_id=category_id))
+    
+    # Normalize URL to include protocol
+    url = normalize_url(url)
+    
+    # get max sort_order for this category's direct links
+    links_res = supabase.table("links").select("sort_order").eq("category_id", category_id).order("sort_order",desc=True).limit(1).execute()
+    max_pos = links_res.data[0]["sort_order"] if links_res.data else 0
+    pos = max_pos + 1
+    
+    try:
+        supabase.table("links").insert({
+            "category_id": category_id,
+            "title": title,
+            "url": url,
+            "description": description,
+            "sort_order": pos,
+            "is_public": True
+        }).execute()
+        flash("Link added successfully","success")
+    except Exception as e:
+        flash("Error adding link. Please check the URL format.","danger")
+        
+    return redirect(url_for("category_subcategories", category_id=category_id))
+
+# Edit and delete subcategories
+@app.route("/subcategory/<int:subcategory_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_subcategory(subcategory_id):
+    u = current_user()
+    
+    # Get subcategory and verify access
+    subcategory_res = supabase.table("subcategories").select("*, categories!inner(*)").eq("id", subcategory_id).eq("categories.user_id", u["id"]).execute()
+    if not subcategory_res.data:
+        abort(404)
+    subcategory = subcategory_res.data[0]
+    
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        description = request.form.get("description", "").strip()
+        color = request.form.get("color", "#6366f1").strip()
+        icon_url = subcategory.get("icon_url")
+        
+        if not name:
+            flash("Subcategory name is required", "danger")
+            return render_template("edit_subcategory.html", subcategory=subcategory, user=u)
+        
+        # Handle icon file upload
+        if 'icon_file' in request.files:
+            icon_file = request.files['icon_file']
+            if icon_file and icon_file.filename != '':
+                try:
+                    upload_result = cloudinary.uploader.upload(
+                        icon_file,
+                        folder="linktree_icons/subcategories",
+                        transformation=[
+                            {"width": 64, "height": 64, "crop": "fill"},
+                            {"quality": "auto", "fetch_format": "auto"}
+                        ]
+                    )
+                    icon_url = upload_result['secure_url']
+                except Exception as e:
+                    flash(f"Failed to upload icon: {str(e)}", "danger")
+                    return render_template("edit_subcategory.html", subcategory=subcategory, user=u)
+        
+        try:
+            supabase.table("subcategories").update({
+                "name": name,
+                "description": description,
+                "color": color,
+                "icon_url": icon_url
+            }).eq("id", subcategory_id).execute()
+            flash("Subcategory updated successfully", "success")
+            return redirect(url_for("category_subcategories", category_id=subcategory["categories"]["id"]))
+        except Exception as e:
+            flash("Error updating subcategory. Name might already exist.", "danger")
+    
+    return render_template("edit_subcategory.html", subcategory=subcategory, user=u)
+
+@app.route("/subcategory/<int:subcategory_id>/delete", methods=["POST"])
+@login_required
+def delete_subcategory(subcategory_id):
+    u = current_user()
+    
+    # Get subcategory and verify access
+    subcategory_res = supabase.table("subcategories").select("*, categories!inner(*)").eq("id", subcategory_id).eq("categories.user_id", u["id"]).execute()
+    if not subcategory_res.data:
+        abort(404)
+    subcategory = subcategory_res.data[0]
+    category_id = subcategory["categories"]["id"]
+    
+    try:
+        # Delete all links in this subcategory first
+        supabase.table("links").delete().eq("subcategory_id", subcategory_id).execute()
+        # Delete the subcategory
+        supabase.table("subcategories").delete().eq("id", subcategory_id).execute()
+        flash(f"Subcategory '{subcategory['name']}' deleted successfully", "success")
+    except Exception as e:
+        flash("Error deleting subcategory", "danger")
+    
+    return redirect(url_for("category_subcategories", category_id=category_id))
 
 @app.route("/link/<link_id>/edit", methods=["GET","POST"])
 @login_required
@@ -963,36 +1086,47 @@ def api_stats(username):
     return jsonify({"username":username,"links":out})
 
 # --- API endpoints for public profile ---
-@app.route("/api/category/<int:category_id>/brands")
-def api_category_brands(category_id):
-    """Get brands for a category (public API)"""
+@app.route("/api/category/<int:category_id>/content")
+def api_category_content(category_id):
+    """Get subcategories and direct links for a category (public API)"""
     # Verify category exists and is active
-    category_res = supabase.table("categories").select("user_id").eq("id", category_id).eq("is_active", True).execute()
+    category_res = supabase.table("categories").select("user_id, name").eq("id", category_id).eq("is_active", True).execute()
     if not category_res.data:
         return jsonify({"error": "Category not found"}), 404
     
-    # Get brands for this category
-    brands = supabase.table("brands").select("*").eq("category_id", category_id).eq("is_active", True).order("sort_order").execute().data
+    category = category_res.data[0]
     
-    # Add link count for each brand
-    for brand in brands:
-        link_count = supabase.table("links").select("id", count="exact").eq("brand_id", brand["id"]).eq("is_active", True).eq("is_public", True).execute().count
-        brand["link_count"] = link_count or 0
+    # Get subcategories for this category
+    subcategories = supabase.table("subcategories").select("*").eq("category_id", category_id).eq("is_active", True).order("sort_order").execute().data
     
-    return jsonify({"brands": brands})
+    # Add link count for each subcategory
+    for subcategory in subcategories:
+        link_count = supabase.table("links").select("id", count="exact").eq("subcategory_id", subcategory["id"]).eq("is_active", True).eq("is_public", True).execute().count
+        subcategory["link_count"] = link_count or 0
+    
+    # Get direct links for this category
+    direct_links = supabase.table("links").select("*").eq("category_id", category_id).eq("is_active", True).eq("is_public", True).order("sort_order").execute().data
+    
+    return jsonify({
+        "category": category,
+        "subcategories": subcategories, 
+        "direct_links": direct_links
+    })
 
-@app.route("/api/brand/<int:brand_id>/links")
-def api_brand_links(brand_id):
-    """Get links for a brand (public API)"""
-    # Verify brand exists and is active
-    brand_res = supabase.table("brands").select("user_id").eq("id", brand_id).eq("is_active", True).execute()
-    if not brand_res.data:
-        return jsonify({"error": "Brand not found"}), 404
+@app.route("/api/subcategory/<int:subcategory_id>/links")
+def api_subcategory_links(subcategory_id):
+    """Get links for a subcategory (public API)"""
+    # Verify subcategory exists and is active
+    subcategory_res = supabase.table("subcategories").select("user_id, name").eq("id", subcategory_id).eq("is_active", True).execute()
+    if not subcategory_res.data:
+        return jsonify({"error": "Subcategory not found"}), 404
     
-    # Get links for this brand
-    links = supabase.table("links").select("*").eq("brand_id", brand_id).eq("is_active", True).eq("is_public", True).order("sort_order").execute().data
+    subcategory = subcategory_res.data[0]
     
-    return jsonify({"links": links})
+    # Get links for this subcategory
+    links = supabase.table("links").select("*").eq("subcategory_id", subcategory_id).eq("is_active", True).eq("is_public", True).order("sort_order").execute().data
+    
+    return jsonify({"subcategory": subcategory, "links": links})
 
 # Debug OAuth configuration
 @app.route("/oauth-debug")
@@ -1141,6 +1275,3 @@ def debug():
         <p>❌ Error occurred during debugging</p>
         <a href="/dashboard">Back to Dashboard</a>
         """
-
-# Vercel expects the Flask app to be available as a module-level variable
-# Remove the if __name__ == "__main__" block for serverless deployment

@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}{{ subcategory.name }} - Links{% endblock %}
+{% block content %}
+<div class="page-header animate-fade-in">
+  <div class="breadcrumb">
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <span class="separator">›</span>
+    <a href="{{ url_for('category_subcategories', category_id=subcategory.categories.id) }}">{{ subcategory.categories.name }}</a>
+    <span class="separator">›</span>
+    <span>{{ subcategory.name }}</span>
+  </div>
+  <h2>{{ subcategory.name }} <span class="gradient-text">Links</span></h2>
+  {% if subcategory.description %}
+    <p class="text-large">{{ subcategory.description }}</p>
+  {% endif %}
+</div>
+
+<section class="card card-premium animate-slide-in">
+  <h3>Add New Link</h3>
+  <form method="post" action="{{ url_for('add_link_to_subcategory', subcategory_id=subcategory.id) }}" class="link-form">
+    <div class="form-group">
+      <label>
+        Link Title
+        <input name="title" placeholder="e.g. Shop Now, View Collection, Documentation" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>
+        URL
+        <input name="url" placeholder="https://example.com" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>
+        Description (Optional)
+        <textarea name="description" placeholder="Brief description of this link"></textarea>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Add Link</button>
+      <a href="{{ url_for('category_subcategories', category_id=subcategory.categories.id) }}" class="btn btn-outline">Back to Subcategories</a>
+    </div>
+  </form>
+</section>
+
+<section class="card card-glass animate-slide-in">
+  <h3>Links in {{ subcategory.name }}</h3>
+  {% if links %}
+    <div class="links-list stagger-animation">
+      {% for link in links %}
+      <div class="link-card hover-glow animate-fade-in">
+        <div class="link-main">
+          <div class="link-info">
+            <h4>{{ link.title }}</h4>
+            {% if link.description %}
+              <p class="link-description">{{ link.description }}</p>
+            {% endif %}
+            <a href="{{ link.url }}" target="_blank" class="link-url" rel="noopener noreferrer">
+              {{ link.url }}
+              <span class="external-icon">↗</span>
+            </a>
+          </div>
+          <div class="link-stats">
+            <span class="click-count">{{ link.click_count or 0 }} clicks</span>
+          </div>
+        </div>
+        <div class="link-actions">
+          <a href="{{ url_for('edit_link', link_id=link.id) }}" class="edit-btn" title="Edit Link">✏️</a>
+          <form method="post" action="{{ url_for('delete_link', link_id=link.id) }}" class="delete-form" onsubmit="return confirm('Delete {{ link.title }}?')">
+            <button class="delete-btn" type="submit" title="Delete Link">🗑️</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🔗</div>
+      <h4>No links yet</h4>
+      <p>Add your first link to {{ subcategory.name }} using the form above.</p>
+    </div>
+  {% endif %}
+</section>
+
+<style>
+.links-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.link-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.link-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-base);
+}
+
+.link-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg), 0 0 30px rgba(99, 102, 241, 0.15);
+  border-color: var(--border-glow);
+}
+
+.link-card:hover::before {
+  transform: scaleX(1);
+}
+
+.link-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex: 1;
+}
+
+.link-info h4 {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+}
+
+.link-description {
+  margin: 0 0 var(--space-3) 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.link-url {
+  color: var(--primary-solid);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--transition-base);
+}
+
+.link-url:hover {
+  color: var(--accent-purple);
+  transform: translateX(2px);
+}
+
+.external-icon {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+  transition: all var(--transition-base);
+}
+
+.link-url:hover .external-icon {
+  opacity: 1;
+  transform: translateX(2px) translateY(-2px);
+}
+
+.link-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.click-count {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+  color: var(--accent-emerald);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  white-space: nowrap;
+}
+
+.link-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: var(--space-4);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-16);
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: var(--font-size-6xl);
+  margin-bottom: var(--space-4);
+  opacity: 0.6;
+}
+
+.empty-state h4 {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .link-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  
+  .link-stats {
+    align-self: stretch;
+    justify-content: flex-start;
+  }
+  
+  .link-actions {
+    margin-left: 0;
+    margin-top: var(--space-3);
+  }
+}
+</style>
+{% endblock %}

@@ -22,8 +22,8 @@
         <span class="stat-number">{{ analytics.categories_count }}</span>
       </div>
       <div class="stat-card">
-        <h4>Brands</h4>
-        <span class="stat-number">{{ analytics.brands_count }}</span>
+        <h4>Subcategories</h4>
+        <span class="stat-number">{{ analytics.subcategories_count }}</span>
       </div>
     </div>
     
@@ -124,14 +124,7 @@
         </label>
         <div class="form-actions">
           <button class="btn" type="submit">Save Profile</button>
-          <button 
-            type="button" 
-            class="btn btn-secondary" 
-            style="color: red;" 
-            onclick="closeModal('profile-modal')">
-            Cancel
-          </button>
-
+          <button type="button" class="btn btn-secondary" onclick="closeModal('profile-modal')">Cancel</button>
         </div>
       </form>
     </div>
@@ -176,10 +169,10 @@
           <div class="category-grid">
             {% for category in categories %}
               <div class="category-card" style="border-left: 4px solid {{ category.color }}">
-                <div class="category-content" onclick="window.location.href='{{ url_for('category_brands', category_id=category.id) }}'">
+                <div class="category-content" onclick="window.location.href='{{ url_for('category_subcategories', category_id=category.id) }}'">
                   <div class="category-header">
                     <h4>{{ category.name }}</h4>
-                    <span class="brand-count">{{ category.brand_count or 0 }} brands</span>
+                    <span class="subcategory-count">{{ category.subcategory_count or 0 }} subcategories • {{ category.direct_links_count or 0 }} direct links</span>
                   </div>
                   {% if category.description %}
                     <p class="category-description">{{ category.description }}</p>
@@ -215,15 +208,15 @@
       <section class="card">
         <h4>Brands Overview</h4>
         <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-          Brands are organized within categories. Click on a category above, then manage brands within that category.
+          Subcategories are organized within categories. Click on a category above, then manage subcategories and direct links within that category.
         </p>
         {% if categories %}
           <div class="category-quick-links">
             {% for category in categories %}
-              <a href="{{ url_for('category_brands', category_id=category.id) }}" class="quick-link-btn" style="border-color: {{ category.color }}">
+              <a href="{{ url_for('category_subcategories', category_id=category.id) }}" class="quick-link-btn" style="border-color: {{ category.color }}">
                 <span style="color: {{ category.color }}">●</span>
                 {{ category.name }}
-                <small>({{ category.brand_count or 0 }} brands)</small>
+                <small>({{ category.subcategory_count or 0 }} subcategories)</small>
               </a>
             {% endfor %}
           </div>
@@ -247,21 +240,21 @@
       <section class="card">
         <h4>Links Overview</h4>
         <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-          Links are organized within brands. Navigate to a category, then to a brand to manage links.
+          Links can be organized within subcategories or added directly to categories. Navigate to a category to manage links and subcategories.
         </p>
         {% if categories %}
           <div class="category-quick-links">
             {% for category in categories %}
-              <a href="{{ url_for('category_brands', category_id=category.id) }}" class="quick-link-btn" style="border-color: {{ category.color }}">
+              <a href="{{ url_for('category_subcategories', category_id=category.id) }}" class="quick-link-btn" style="border-color: {{ category.color }}">
                 <span style="color: {{ category.color }}">●</span>
                 {{ category.name }}
-                <small>({{ category.brand_count or 0 }} brands)</small>
+                <small>({{ category.subcategory_count or 0 }} subcategories, {{ category.direct_links_count or 0 }} direct links)</small>
               </a>
             {% endfor %}
           </div>
         {% else %}
           <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
-            <p>Create categories and brands first to organize your links.</p>
+            <p>Create categories first to organize your links and subcategories.</p>
           </div>
         {% endif %}
       </section>

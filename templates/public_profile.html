@@ -39,22 +39,31 @@
           {% endfor %}
         </div>
 
-        <!-- Brands Container (Initially Hidden) -->
-        <div class="brands-container" id="brandsContainer" style="display: none;">
+        <!-- Category Content Container (Initially Hidden) -->
+        <div class="content-container" id="contentContainer" style="display: none;">
           <div class="back-nav">
             <button onclick="showCategories()" class="back-btn">← Back to Categories</button>
             <h3 id="categoryTitle"></h3>
           </div>
-          <div class="public-brands-grid" id="brandsGrid">
-            <!-- Brands will be loaded dynamically -->
+          
+          <!-- Direct Links Section -->
+          <div class="direct-links-section" id="directLinksSection" style="display: none;">
+            <h4>Quick Links</h4>
+            <div class="public-links-grid" id="directLinksGrid"></div>
+          </div>
+          
+          <!-- Subcategories Section -->
+          <div class="subcategories-section" id="subcategoriesSection" style="display: none;">
+            <h4>Subcategories</h4>
+            <div class="public-brands-grid" id="subcategoriesGrid"></div>
           </div>
         </div>
 
         <!-- Links Container (Initially Hidden) -->
         <div class="links-container" id="linksContainer" style="display: none;">
           <div class="back-nav">
-            <button onclick="showBrands()" class="back-btn">← Back to Brands</button>
-            <h3 id="brandTitle"></h3>
+            <button onclick="showCategoryContent()" class="back-btn">← Back to Category</button>
+            <h3 id="subcategoryTitle"></h3>
           </div>
           <div class="public-links-grid" id="linksGrid">
             <!-- Links will be loaded dynamically -->
@@ -81,27 +90,27 @@
 <script>
 let currentView = 'categories';
 let currentCategoryId = null;
-let currentBrandId = null;
+let currentSubcategoryId = null;
 let currentCategoryName = '';
-let currentBrandName = '';
+let currentSubcategoryName = '';
 
 function showCategories() {
   document.getElementById('categoriesGrid').style.display = 'grid';
-  document.getElementById('brandsContainer').style.display = 'none';
+  document.getElementById('contentContainer').style.display = 'none';
   document.getElementById('linksContainer').style.display = 'none';
   currentView = 'categories';
 }
 
-function showBrands() {
+function showCategoryContent() {
   document.getElementById('categoriesGrid').style.display = 'none';
-  document.getElementById('brandsContainer').style.display = 'block';
+  document.getElementById('contentContainer').style.display = 'block';
   document.getElementById('linksContainer').style.display = 'none';
-  currentView = 'brands';
+  currentView = 'content';
 }
 
 function showLinks() {
   document.getElementById('categoriesGrid').style.display = 'none';
-  document.getElementById('brandsContainer').style.display = 'none';
+  document.getElementById('contentContainer').style.display = 'none';
   document.getElementById('linksContainer').style.display = 'block';
   currentView = 'links';
 }
@@ -124,37 +133,46 @@ async function toggleCategory(categoryId) {
   showLoading();
   
   try {
-    const response = await fetch(`/api/category/${categoryId}/brands`);
+    const response = await fetch(`/api/category/${categoryId}/content`);
     const data = await response.json();
     
-    if (data.brands) {
-      displayBrands(data.brands);
-      document.getElementById('categoryTitle').textContent = currentCategoryName;
-      showBrands();
+    if (data.error) {
+      alert(data.error);
+      return;
     }
+    
+    displayCategoryContent(data);
+    document.getElementById('categoryTitle').textContent = currentCategoryName;
+    showCategoryContent();
+    
   } catch (error) {
-    console.error('Error loading brands:', error);
-    alert('Error loading brands');
+    console.error('Error loading category content:', error);
+    alert('Error loading category content');
   } finally {
     hideLoading();
   }
 }
 
-async function toggleBrand(brandId, brandName) {
-  if (currentView !== 'brands') return;
+async function toggleSubcategory(subcategoryId, subcategoryName) {
+  if (currentView !== 'content') return;
   
-  currentBrandId = brandId;
-  currentBrandName = brandName;
+  currentSubcategoryId = subcategoryId;
+  currentSubcategoryName = subcategoryName;
   
   showLoading();
   
   try {
-    const response = await fetch(`/api/brand/${brandId}/links`);
+    const response = await fetch(`/api/subcategory/${subcategoryId}/links`);
     const data = await response.json();
+    
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
     
     if (data.links) {
       displayLinks(data.links);
-      document.getElementById('brandTitle').textContent = currentBrandName;
+      document.getElementById('subcategoryTitle').textContent = currentSubcategoryName;
       showLinks();
     }
   } catch (error) {
@@ -165,28 +183,83 @@ async function toggleBrand(brandId, brandName) {
   }
 }
 
-function displayBrands(brands) {
-  const brandsGrid = document.getElementById('brandsGrid');
-  brandsGrid.innerHTML = '';
+function displayCategoryContent(data) {
+  const { subcategories, direct_links } = data;
   
-  brands.forEach(brand => {
-    const brandCard = document.createElement('div');
-    brandCard.className = 'public-brand-card';
-    brandCard.onclick = () => toggleBrand(brand.id, brand.name);
+  // Show/hide direct links section
+  const directLinksSection = document.getElementById('directLinksSection');
+  if (direct_links && direct_links.length > 0) {
+    displayDirectLinks(direct_links);
+    directLinksSection.style.display = 'block';
+  } else {
+    directLinksSection.style.display = 'none';
+  }
+  
+  // Show/hide subcategories section
+  const subcategoriesSection = document.getElementById('subcategoriesSection');
+  if (subcategories && subcategories.length > 0) {
+    displaySubcategories(subcategories);
+    subcategoriesSection.style.display = 'block';
+  } else {
+    subcategoriesSection.style.display = 'none';
+  }
+  
+  // If no content at all, show message
+  if ((!direct_links || direct_links.length === 0) && (!subcategories || subcategories.length === 0)) {
+    document.getElementById('contentContainer').innerHTML = `
+      <div class="back-nav">
+        <button onclick="showCategories()" class="back-btn">← Back to Categories</button>
+        <h3>${currentCategoryName}</h3>
+      </div>
+      <div class="empty-public-profile">
+        <p>No content available in this category yet.</p>
+      </div>
+    `;
+  }
+}
+
+function displayDirectLinks(links) {
+  const directLinksGrid = document.getElementById('directLinksGrid');
+  directLinksGrid.innerHTML = '';
+  
+  links.forEach(link => {
+    const linkCard = document.createElement('div');
+    linkCard.className = 'public-link-card';
     
-    brandCard.innerHTML = `
+    linkCard.innerHTML = `
+      <a href="/r/${link.id}" target="_blank" class="public-link-content">
+        <div class="link-icon">🔗</div>
+        <h4>${link.title}</h4>
+        ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
+      </a>
+    `;
+    
+    directLinksGrid.appendChild(linkCard);
+  });
+}
+
+function displaySubcategories(subcategories) {
+  const subcategoriesGrid = document.getElementById('subcategoriesGrid');
+  subcategoriesGrid.innerHTML = '';
+  
+  subcategories.forEach(subcategory => {
+    const subcategoryCard = document.createElement('div');
+    subcategoryCard.className = 'public-brand-card';
+    subcategoryCard.onclick = () => toggleSubcategory(subcategory.id, subcategory.name);
+    
+    subcategoryCard.innerHTML = `
       <div class="public-brand-content">
-        <div class="brand-icon">
-          ${brand.logo_url ? `<img src="${brand.logo_url}" alt="${brand.name} icon" class="custom-icon">` : '🏷️'}
+        <div class="brand-icon" style="background-color: ${subcategory.color}20; color: ${subcategory.color}">
+          ${subcategory.icon_url ? `<img src="${subcategory.icon_url}" alt="${subcategory.name} icon" class="custom-icon">` : '📁'}
         </div>
-        <h4>${brand.name}</h4>
-        ${brand.description ? `<p class="brand-desc">${brand.description}</p>` : ''}
-        <span class="link-count">${brand.link_count || 0} links</span>
+        <h4>${subcategory.name}</h4>
+        ${subcategory.description ? `<p class="brand-desc">${subcategory.description}</p>` : ''}
+        <span class="link-count">${subcategory.link_count || 0} links</span>
         <span class="expand-indicator">→</span>
       </div>
     `;
     
-    brandsGrid.appendChild(brandCard);
+    subcategoriesGrid.appendChild(subcategoryCard);
   });
 }
 

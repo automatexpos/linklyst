@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }} - Subcategories{% endblock %}
+{% block content %}
+<div class="page-header animate-fade-in">
+  <div class="breadcrumb">
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <span class="separator">›</span>
+    <span>{{ category.name }}</span>
+  </div>
+  <h2>{{ category.name }} <span class="gradient-text">Management</span></h2>
+  {% if category.description %}
+    <p class="text-large">{{ category.description }}</p>
+  {% endif %}
+</div>
+
+<!-- Add Direct Link Section -->
+<section class="card card-premium animate-slide-in">
+  <h3>Quick Add Link</h3>
+  <p class="text-small">Add a link directly to this category without creating a subcategory</p>
+  <form method="post" action="{{ url_for('add_link_to_category', category_id=category.id) }}" class="small-form">
+    <label>
+      Link Title
+      <input name="title" placeholder="e.g. Company Website, Portfolio" required>
+    </label>
+    <label>
+      URL
+      <input name="url" placeholder="https://example.com" required>
+    </label>
+    <label>
+      Description (Optional)
+      <input name="description" placeholder="Brief description">
+    </label>
+    <button class="btn btn-primary" type="submit">Add Direct Link</button>
+  </form>
+</section>
+
+<!-- Direct Links Display -->
+{% if direct_links %}
+<section class="card card-glass animate-slide-in">
+  <h3>Direct Links</h3>
+  <div class="links-grid stagger-animation">
+    {% for link in direct_links %}
+    <div class="link-item hover-glow animate-fade-in">
+      <div class="link-content">
+        <h4>{{ link.title }}</h4>
+        {% if link.description %}
+          <p class="link-desc">{{ link.description }}</p>
+        {% endif %}
+        <a href="{{ link.url }}" target="_blank" class="link-url">{{ link.url }}</a>
+      </div>
+      <div class="link-actions">
+        <a href="{{ url_for('edit_link', link_id=link.id) }}" class="edit-btn" title="Edit">✏️</a>
+        <form method="post" action="{{ url_for('delete_link', link_id=link.id) }}" class="delete-form" onsubmit="return confirm('Delete this link?')">
+          <button class="delete-btn" type="submit" title="Delete">🗑️</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Add Subcategory Section -->
+<section class="card card-premium animate-slide-in">
+  <h3>Add New Subcategory</h3>
+  <p class="text-small">Create organized groups for your links</p>
+  <form method="post" action="{{ url_for('add_subcategory', category_id=category.id) }}" class="subcategory-form" enctype="multipart/form-data">
+    <div class="form-row">
+      <div class="form-group">
+        <label>
+          Subcategory Name
+          <input name="name" placeholder="e.g. Fashion Brands, Tech Tools, Resources" required>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>
+          Color
+          <input name="color" type="color" value="#6366f1">
+        </label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>
+        Description
+        <textarea name="description" placeholder="Brief description of this subcategory"></textarea>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>
+        Subcategory Icon
+        <input type="file" name="icon_file" accept="image/*" class="file-input">
+        <div class="file-input-helper">
+          <span class="file-btn">Choose Icon</span>
+          <span class="file-text">Upload custom icon (optional)</span>
+        </div>
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Create Subcategory</button>
+      <a href="{{ url_for('categories') }}" class="btn btn-outline">Back to Categories</a>
+    </div>
+  </form>
+</section>
+
+<!-- Subcategories Display -->
+{% if subcategories %}
+<section class="subcategories-section animate-slide-in">
+  <h3>Subcategories</h3>
+  <div class="subcategories-grid stagger-animation">
+    {% for subcategory in subcategories %}
+    <div class="subcategory-card hover-glow animate-fade-in energy-pulse">
+      <div class="subcategory-content" onclick="window.location.href='{{ url_for('subcategory_links', subcategory_id=subcategory.id) }}'">
+        {% if subcategory.icon_url %}
+          <div class="subcategory-icon">
+            <img src="{{ subcategory.icon_url }}" alt="{{ subcategory.name }} icon">
+          </div>
+        {% else %}
+          <div class="subcategory-icon default-icon" style="background: {{ subcategory.color }};">
+            📁
+          </div>
+        {% endif %}
+        <h4 class="gradient-text">{{ subcategory.name }}</h4>
+        {% if subcategory.description %}
+          <p class="subcategory-desc">{{ subcategory.description }}</p>
+        {% endif %}
+        <div class="link-count">
+          {{ subcategory.link_count }} link{{ 's' if subcategory.link_count != 1 else '' }}
+        </div>
+      </div>
+      <div class="subcategory-actions">
+        <a href="{{ url_for('edit_subcategory', subcategory_id=subcategory.id) }}" class="edit-btn" title="Edit">✏️</a>
+        <form method="post" action="{{ url_for('delete_subcategory', subcategory_id=subcategory.id) }}" class="delete-form" onsubmit="return confirm('Delete {{ subcategory.name }}? This will also delete all links in it.')">
+          <button class="delete-btn" type="submit" title="Delete">🗑️</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+  {% if not direct_links %}
+  <div class="empty-state animate-fade-in">
+    <div class="empty-icon">📂</div>
+    <h3>No subcategories yet</h3>
+    <p>Create your first subcategory to organize your links, or add links directly to this category.</p>
+  </div>
+  {% endif %}
+{% endif %}
+
+<style>
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-4);
+  align-items: end;
+}
+
+.subcategories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.subcategory-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.subcategory-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: var(--shadow-xl), var(--shadow-glow);
+  border-color: var(--border-glow);
+}
+
+.subcategory-content {
+  padding: var(--space-6);
+  cursor: pointer;
+  text-align: center;
+}
+
+.subcategory-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-4);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-2xl);
+  box-shadow: var(--shadow-md);
+}
+
+.subcategory-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-full);
+}
+
+.default-icon {
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+  color: white;
+}
+
+.subcategory-desc {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  margin: var(--space-2) 0;
+}
+
+.link-count {
+  display: inline-block;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+  color: var(--primary-solid);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  margin-top: var(--space-3);
+}
+
+.subcategory-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-light);
+}
+
+.links-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.link-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-base);
+}
+
+.link-content h4 {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--text-primary);
+}
+
+.link-desc {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.link-url {
+  color: var(--primary-solid);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.link-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-20);
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: var(--font-size-6xl);
+  margin-bottom: var(--space-4);
+}
+</style>
+{% endblock %}
