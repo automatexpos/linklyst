@@ -59,7 +59,15 @@ def current_user():
     if not uid:
         return None
     res = supabase.table("users").select("*").eq("id", uid).execute()
-    return res.data[0] if res.data else None
+    if not res.data:
+        return None
+    user = res.data[0]
+    # Check if user account is active
+    if not user.get("is_active", True):
+        # Clear session for inactive users
+        session.pop("user_id", None)
+        return None
+    return user
 
 @app.context_processor
 def inject_user():
@@ -78,7 +86,13 @@ def normalize_url(url):
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if not current_user():
+        user = current_user()
+        if not user:
+            # Check if there was a user_id in session but no active user returned
+            # This means the account was deactivated
+            if session.get("user_id"):
+                flash("Your account has been deactivated. Please contact support.", "danger")
+                session.pop("user_id", None)
             return redirect(url_for("login", next=request.path))
         return f(*args, **kwargs)
     return wrapper
@@ -242,6 +256,12 @@ def login():
     if not bcrypt.checkpw(password.encode('utf-8'), user["password_hash"].encode('utf-8')):
         flash("Invalid credentials","danger")
         return redirect(url_for("login"))
+    
+    # Check if account is active
+    if not user.get("is_active", True):
+        flash("Your account has been deactivated. Please contact support.", "danger")
+        return redirect(url_for("login"))
+    
     session["user_id"] = user["id"]
     flash("Logged in","success")
     next_url = request.args.get("next") or url_for("dashboard")
@@ -348,8 +368,12 @@ def google_callback():
         existing_user = supabase.table("users").select("*").eq("google_id", google_id).execute()
         
         if existing_user.data:
-            # User exists with Google ID, log them in
+            # User exists with Google ID, check if account is active
             user = existing_user.data[0]
+            if not user.get("is_active", True):
+                flash("Your account has been deactivated. Please contact support.", "danger")
+                return redirect(url_for("login"))
+            
             session["user_id"] = user["id"]
             session.pop("oauth_state", None)
             flash(f"Welcome back, {name}!", "success")
@@ -359,8 +383,13 @@ def google_callback():
         email_user = supabase.table("users").select("*").eq("email", email).execute()
         
         if email_user.data:
-            # User exists with email but no Google ID, link the accounts
+            # User exists with email but no Google ID, check if account is active
             user = email_user.data[0]
+            if not user.get("is_active", True):
+                flash("Your account has been deactivated. Please contact support.", "danger")
+                return redirect(url_for("login"))
+            
+            # Link the Google account
             supabase.table("users").update({
                 "google_id": google_id
             }).eq("id", user["id"]).execute()
