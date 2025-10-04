@@ -23,10 +23,5 @@
     "GOOGLE_CLIENT_ID": "@google-client-id",
     "GOOGLE_CLIENT_SECRET": "@google-client-secret",
     "GOOGLE_REDIRECT_URI": "@google-redirect-uri"
-  },
-  "functions": {
-    "app.py": {
-      "maxDuration": 30
-    }
   }
 }
