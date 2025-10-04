@@ -48,12 +48,12 @@
     </div>
   </nav>
 
-  <main class="container">
+  <main class="container animate-fade-in">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="flash-area">
+        <div class="flash-area stagger-animation">
         {% for cat, msg in messages %}
-          <div class="flash {{ cat }}">{{ msg }}</div>
+          <div class="flash {{ cat }} animate-slide-in">{{ msg }}</div>
         {% endfor %}
         </div>
       {% endif %}
@@ -61,8 +61,8 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="container footer">
-    <small>Built with ❤️. A project of AutomateXpo</small>
+  <footer class="container footer glass-effect">
+    <small class="gradient-text">Built with ❤️. A project of AutomateXpo</small>
   </footer>
 </body>
 </html>
