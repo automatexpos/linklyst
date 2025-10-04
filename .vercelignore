@@ -1,0 +1,51 @@
+# Environment files (use Vercel dashboard for env vars)
+.env
+.env.local
+
+# Development files
+gmail_signup.py
+migrate_oauth.py
+GOOGLE_OAUTH_SETUP.md
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Local development
+venv/
+env/
+.venv/

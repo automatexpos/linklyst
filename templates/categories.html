@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Categories{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Manage Categories</h2>
+  <p>Organize your products into categories like Bags, Shoes, Watches, etc.</p>
+</div>
+
+<div class="form-section">
+  <section class="card">
+    <h3>Add New Category</h3>
+    <form method="post" action="{{ url_for('add_category') }}" class="category-form">
+      <div class="form-group">
+        <label>
+          Category Name
+          <input name="name" placeholder="e.g. Bags, Shoes, Watches" required>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>
+          Description
+          <textarea name="description" placeholder="Brief description of this category"></textarea>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>
+          Theme Color
+          <input name="color" type="color" value="#6366f1">
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="btn" type="submit">Add Category</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+      </div>
+    </form>
+  </section>
+</div>
+
+<div class="form-section">
+  <section class="card">
+    <h3>Your Categories</h3>
+    {% if categories %}
+      <div class="category-grid">
+        {% for category in categories %}
+          <div class="category-card" data-category-id="{{ category.id }}">
+            <div class="category-color-bar" style="background-color: {{ category.color }}"></div>
+            <div class="category-content">
+              <div class="category-header">
+                <h4>{{ category.name }}</h4>
+                <span class="item-count">{{ category.brand_count or 0 }} brands</span>
+              </div>
+              {% if category.description %}
+                <p class="category-description">{{ category.description }}</p>
+              {% endif %}
+              <div class="category-actions">
+                <a href="{{ url_for('category_brands', category_id=category.id) }}" class="btn btn-primary">
+                  View Brands
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h4>No categories yet</h4>
+        <p>Create your first category to start organizing your products.</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}{{ profile.display_name or user.username }}{% endblock %}
+{% block content %}
+  <div class="profile-card {{ profile.theme or 'default' }}">
+    {% if profile.avatar_url %}
+      <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ profile.display_name or user.username }}'s avatar">
+    {% endif %}
+    
+    <h1>{{ profile.display_name or user.username }}</h1>
+    
+    {% if profile.bio %}
+      <p class="bio">{{ profile.bio }}</p>
+    {% endif %}
+
+    <!-- Categories Grid -->
+    <div class="public-content">
+      {% if categories %}
+        <div class="public-categories-grid" id="categoriesGrid">
+          {% for category in categories %}
+            <div class="public-category-card" 
+                 data-category-id="{{ category.id }}" 
+                 onclick="toggleCategory({{ category.id }})"
+                 style="border-color: {{ category.color }}">
+              <div class="public-category-content">
+                <div class="category-icon" style="background-color: {{ category.color }}20; color: {{ category.color }}">
+                  {% if category.icon_url %}
+                    <img src="{{ category.icon_url }}" alt="{{ category.name }} icon" class="custom-icon">
+                  {% else %}
+                    <i class="icon">📦</i>
+                  {% endif %}
+                </div>
+                <h3>{{ category.name }}</h3>
+                {% if category.description %}
+                  <p class="category-desc">{{ category.description }}</p>
+                {% endif %}
+                <span class="expand-indicator">+</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Brands Container (Initially Hidden) -->
+        <div class="brands-container" id="brandsContainer" style="display: none;">
+          <div class="back-nav">
+            <button onclick="showCategories()" class="back-btn">← Back to Categories</button>
+            <h3 id="categoryTitle"></h3>
+          </div>
+          <div class="public-brands-grid" id="brandsGrid">
+            <!-- Brands will be loaded dynamically -->
+          </div>
+        </div>
+
+        <!-- Links Container (Initially Hidden) -->
+        <div class="links-container" id="linksContainer" style="display: none;">
+          <div class="back-nav">
+            <button onclick="showBrands()" class="back-btn">← Back to Brands</button>
+            <h3 id="brandTitle"></h3>
+          </div>
+          <div class="public-links-grid" id="linksGrid">
+            <!-- Links will be loaded dynamically -->
+          </div>
+        </div>
+
+      {% else %}
+        <div class="empty-public-profile">
+          <p>No content available yet.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-light);">
+      <small style="color: var(--text-muted);">Powered by Linklyst</small>
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-indicator" id="loadingIndicator" style="display: none;">
+    <div class="spinner"></div>
+  </div>
+
+<script>
+let currentView = 'categories';
+let currentCategoryId = null;
+let currentBrandId = null;
+let currentCategoryName = '';
+let currentBrandName = '';
+
+function showCategories() {
+  document.getElementById('categoriesGrid').style.display = 'grid';
+  document.getElementById('brandsContainer').style.display = 'none';
+  document.getElementById('linksContainer').style.display = 'none';
+  currentView = 'categories';
+}
+
+function showBrands() {
+  document.getElementById('categoriesGrid').style.display = 'none';
+  document.getElementById('brandsContainer').style.display = 'block';
+  document.getElementById('linksContainer').style.display = 'none';
+  currentView = 'brands';
+}
+
+function showLinks() {
+  document.getElementById('categoriesGrid').style.display = 'none';
+  document.getElementById('brandsContainer').style.display = 'none';
+  document.getElementById('linksContainer').style.display = 'block';
+  currentView = 'links';
+}
+
+function showLoading() {
+  document.getElementById('loadingIndicator').style.display = 'flex';
+}
+
+function hideLoading() {
+  document.getElementById('loadingIndicator').style.display = 'none';
+}
+
+async function toggleCategory(categoryId) {
+  if (currentView !== 'categories') return;
+  
+  const categoryCard = document.querySelector(`[data-category-id="${categoryId}"]`);
+  currentCategoryName = categoryCard.querySelector('h3').textContent;
+  currentCategoryId = categoryId;
+  
+  showLoading();
+  
+  try {
+    const response = await fetch(`/api/category/${categoryId}/brands`);
+    const data = await response.json();
+    
+    if (data.brands) {
+      displayBrands(data.brands);
+      document.getElementById('categoryTitle').textContent = currentCategoryName;
+      showBrands();
+    }
+  } catch (error) {
+    console.error('Error loading brands:', error);
+    alert('Error loading brands');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function toggleBrand(brandId, brandName) {
+  if (currentView !== 'brands') return;
+  
+  currentBrandId = brandId;
+  currentBrandName = brandName;
+  
+  showLoading();
+  
+  try {
+    const response = await fetch(`/api/brand/${brandId}/links`);
+    const data = await response.json();
+    
+    if (data.links) {
+      displayLinks(data.links);
+      document.getElementById('brandTitle').textContent = currentBrandName;
+      showLinks();
+    }
+  } catch (error) {
+    console.error('Error loading links:', error);
+    alert('Error loading links');
+  } finally {
+    hideLoading();
+  }
+}
+
+function displayBrands(brands) {
+  const brandsGrid = document.getElementById('brandsGrid');
+  brandsGrid.innerHTML = '';
+  
+  brands.forEach(brand => {
+    const brandCard = document.createElement('div');
+    brandCard.className = 'public-brand-card';
+    brandCard.onclick = () => toggleBrand(brand.id, brand.name);
+    
+    brandCard.innerHTML = `
+      <div class="public-brand-content">
+        <div class="brand-icon">
+          ${brand.logo_url ? `<img src="${brand.logo_url}" alt="${brand.name} icon" class="custom-icon">` : '🏷️'}
+        </div>
+        <h4>${brand.name}</h4>
+        ${brand.description ? `<p class="brand-desc">${brand.description}</p>` : ''}
+        <span class="link-count">${brand.link_count || 0} links</span>
+        <span class="expand-indicator">→</span>
+      </div>
+    `;
+    
+    brandsGrid.appendChild(brandCard);
+  });
+}
+
+function displayLinks(links) {
+  const linksGrid = document.getElementById('linksGrid');
+  linksGrid.innerHTML = '';
+  
+  links.forEach(link => {
+    const linkCard = document.createElement('div');
+    linkCard.className = 'public-link-card';
+    
+    linkCard.innerHTML = `
+      <a href="/r/${link.id}" target="_blank" class="public-link-content">
+        <div class="link-icon">🔗</div>
+        <h4>${link.title}</h4>
+        ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
+      </a>
+    `;
+    
+    linksGrid.appendChild(linkCard);
+  });
+}
+</script>
+{% endblock %}

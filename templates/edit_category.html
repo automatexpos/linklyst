@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Edit Category{% endblock %}
+{% block content %}
+  <div class="auth-container" style="max-width: 500px;">
+    <div class="card">
+      <h2>Edit Category</h2>
+      <form method="post" enctype="multipart/form-data">
+        <label>
+          Category Name
+          <input name="name" value="{{ category.name }}" required placeholder="e.g. Social Media">
+        </label>
+        <label>
+          Description
+          <textarea name="description" placeholder="Optional description for this category" rows="3">{{ category.description or '' }}</textarea>
+        </label>
+        <label>
+          Color
+          <input name="color" type="color" value="{{ category.color or '#2563eb' }}">
+        </label>
+        <label>
+          Category Icon
+          <input name="icon_file" type="file" accept="image/*">
+          <small class="form-helper">Upload a custom icon (optional). Leave empty to keep current icon.</small>
+          {% if category.icon_url %}
+            <div class="current-icon" style="margin-top: 0.5rem;">
+              <small>Current icon:</small>
+              <img src="{{ category.icon_url }}" alt="Current icon" style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%; margin-left: 0.5rem;">
+            </div>
+          {% endif %}
+        </label>
+        <div class="form-actions">
+          <button class="btn" type="submit">Save Changes</button>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

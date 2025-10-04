@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Confirm Logout{% endblock %}
+{% block content %}
+  <div class="auth-container">
+    <div class="auth-card">
+      <h2>Confirm Logout</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+        Are you sure you want to sign out of your account?
+      </p>
+      <form method="post">
+        <div class="form-actions">
+          <button class="btn btn-danger" type="submit">Yes, sign out</button>
+          <a class="btn btn-secondary" href="{{ url_for('dashboard') }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

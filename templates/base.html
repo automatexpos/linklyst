@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}Linklyst{% endblock %}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+  <script>
+    // Function to handle modal opening from non-dashboard pages
+    function openDashboardModal(modalId) {
+      // If we're on the dashboard, open the modal directly
+      if (window.location.pathname.includes('/dashboard') || typeof openModal === 'function') {
+        if (typeof openModal === 'function') {
+          openModal(modalId);
+        } else if (typeof toggleSection === 'function') {
+          const sectionId = modalId === 'profile-modal' ? 'profile-section' : 'categories-section';
+          toggleSection(sectionId);
+        }
+      } else {
+        // Otherwise, redirect to dashboard with modal parameter
+        const modalType = modalId === 'profile-modal' ? 'profile' : 'categories';
+        window.location.href = '/dashboard?modal=' + modalType;
+      }
+    }
+  </script>
+</head>
+<body>
+  <nav class="topbar">
+    <div class="container">
+  <a href="{{ url_for('dashboard') if user else url_for('login', next='dashboard') }}" class="logo">Linklyst</a>
+      <div class="nav-right">
+        {% if user %}
+          <a href="{{ url_for('dashboard') }}">Dashboard</a>
+          {% set excluded_pages = ['public_profile', 'login', 'register', 'logout'] %}
+          {% if request.endpoint not in excluded_pages %}
+            <button class="nav-btn" onclick="openDashboardModal('profile-modal')">Profile Settings</button>
+            <button class="nav-btn" onclick="openDashboardModal('categories-modal')">Categories</button>
+          {% endif %}
+          <form method="post" action="{{ url_for('logout') }}" style="display:inline; margin: 0;">
+            <button class="link-btn" type="submit">Sign out</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('register') }}">Sign up</a>
+          <a href="{{ url_for('login') }}">Sign in</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-area">
+        {% for cat, msg in messages %}
+          <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="container footer">
+    <small>Built with ❤️. A project of AutomateXpo</small>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Edit Link{% endblock %}
+{% block content %}
+  <div class="auth-container" style="max-width: 500px;">
+    <div class="card">
+      <h2>Edit Link</h2>
+      <form method="post">
+        <label>
+          Link Title
+          <input name="title" value="{{ link.title }}" required placeholder="e.g. My Website">
+        </label>
+        <label>
+          URL
+          <input name="url" value="{{ link.url }}" required placeholder="example.com or https://example.com">
+        </label>
+        <label style="display: flex; align-items: center; margin-top: 1rem;">
+          <input name="is_public" type="checkbox" {% if link.is_public %}checked{% endif %} style="width: auto; margin-right: 0.5rem; margin-top: 0;">
+          Make this link public
+        </label>
+        <div class="form-actions">
+          <button class="btn" type="submit">Save Changes</button>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
