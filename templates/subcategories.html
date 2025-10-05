@@ -17,19 +17,30 @@
 <section class="card card-premium animate-slide-in">
   <h3>Quick Add Link</h3>
   <p class="text-small">Add a link directly to this category without creating a subcategory</p>
-  <form method="post" action="{{ url_for('add_link_to_category', category_id=category.id) }}" class="small-form">
+  <form method="post" action="{{ url_for('add_link_to_category', category_id=category.id) }}" class="small-form" id="quick-add-form">
+    <div class="form-group-with-button">
+      <label>
+        URL
+        <input name="url" id="quick-url" placeholder="https://example.com" required>
+      </label>
+      <button type="button" class="btn btn-outline btn-detect" onclick="detectLinkInfo('quick')">
+        <span class="detect-text">Select</span>
+        <span class="detect-loading" style="display: none;">📡</span>
+      </button>
+    </div>
     <label>
       Link Title
-      <input name="title" placeholder="e.g. Company Website, Portfolio" required>
-    </label>
-    <label>
-      URL
-      <input name="url" placeholder="https://example.com" required>
+      <input name="title" id="quick-title" placeholder="e.g. Company Website, Portfolio" required>
     </label>
     <label>
       Description (Optional)
-      <input name="description" placeholder="Brief description">
+      <input name="description" id="quick-description" placeholder="Brief description">
     </label>
+    <input type="hidden" name="image_url" id="quick-image-url">
+    <div class="detected-image" id="quick-detected-image" style="display: none;">
+      <img src="" alt="Detected image" class="preview-image">
+      <span class="image-label">Auto-detected image</span>
+    </div>
     <button class="btn btn-primary" type="submit">Add Direct Link</button>
   </form>
 </section>
@@ -41,6 +52,11 @@
   <div class="links-grid stagger-animation">
     {% for link in direct_links %}
     <div class="link-item hover-glow animate-fade-in">
+      {% if link.image_url %}
+        <div class="link-image">
+          <img src="{{ link.image_url }}" alt="{{ link.title }}" class="link-thumbnail">
+        </div>
+      {% endif %}
       <div class="link-content">
         <h4>{{ link.title }}</h4>
         {% if link.description %}
@@ -245,12 +261,29 @@
 .link-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-4);
   padding: var(--space-4);
   background: var(--bg-primary);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
   transition: all var(--transition-base);
+}
+
+.link-image {
+  flex-shrink: 0;
+}
+
+.link-thumbnail {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--border-light);
+}
+
+.link-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .link-content h4 {
@@ -285,5 +318,133 @@
   font-size: var(--font-size-6xl);
   margin-bottom: var(--space-4);
 }
+
+/* Auto-detection styles */
+.form-group-with-button {
+  position: relative;
+  display: flex;
+  gap: var(--space-2);
+  align-items: end;
+}
+
+.form-group-with-button label {
+  flex: 1;
+}
+
+.btn-detect {
+  min-width: 80px;
+  height: 48px;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.btn-detect:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.btn-detect.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.detected-image {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  margin: var(--space-3) 0;
+}
+
+.preview-image {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border-light);
+}
+
+.image-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
 </style>
+
+<script>
+async function detectLinkInfo(formType) {
+  const urlInput = document.getElementById(`${formType}-url`);
+  const titleInput = document.getElementById(`${formType}-title`);
+  const descriptionInput = document.getElementById(`${formType}-description`);
+  const imageUrlInput = document.getElementById(`${formType}-image-url`);
+  const detectedImageDiv = document.getElementById(`${formType}-detected-image`);
+  const detectBtn = document.querySelector(`#${formType}-add-form .btn-detect`);
+  
+  const url = urlInput.value.trim();
+  if (!url) {
+    alert('Please enter a URL first');
+    urlInput.focus();
+    return;
+  }
+  
+  // Show loading state
+  detectBtn.classList.add('loading');
+  detectBtn.querySelector('.detect-text').style.display = 'none';
+  detectBtn.querySelector('.detect-loading').style.display = 'inline';
+  
+  try {
+    const response = await fetch('/api/detect-link-info', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url: url })
+    });
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      alert(`Error: ${data.error}`);
+      return;
+    }
+    
+    // Populate the form fields
+    if (data.title && !titleInput.value) {
+      titleInput.value = data.title;
+    }
+    
+    // Set image URL if detected
+    if (data.image_url) {
+      imageUrlInput.value = data.image_url;
+      detectedImageDiv.querySelector('img').src = data.image_url;
+      detectedImageDiv.style.display = 'flex';
+    }
+    
+    // Add success visual feedback
+    detectBtn.style.background = 'var(--success-solid)';
+    detectBtn.querySelector('.detect-text').textContent = '✓';
+    setTimeout(() => {
+      detectBtn.style.background = '';
+      detectBtn.querySelector('.detect-text').textContent = 'Select';
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error detecting link info:', error);
+    alert('Failed to detect link information. Please try again.');
+  } finally {
+    // Reset loading state
+    detectBtn.classList.remove('loading');
+    detectBtn.querySelector('.detect-text').style.display = 'inline';
+    detectBtn.querySelector('.detect-loading').style.display = 'none';
+  }
+}
+</script>
 {% endblock %}

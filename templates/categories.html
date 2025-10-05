@@ -47,14 +47,14 @@
             <div class="category-content">
               <div class="category-header">
                 <h4>{{ category.name }}</h4>
-                <span class="item-count">{{ category.brand_count or 0 }} brands</span>
+                <span class="item-count">{{ category.subcategory_count or 0 }} subcategories</span>
               </div>
               {% if category.description %}
                 <p class="category-description">{{ category.description }}</p>
               {% endif %}
               <div class="category-actions">
-                <a href="{{ url_for('category_brands', category_id=category.id) }}" class="btn btn-primary">
-                  View Brands
+                <a href="{{ url_for('category_subcategories', category_id=category.id) }}" class="btn btn-primary">
+                  Manage Category
                 </a>
               </div>
             </div>

@@ -479,6 +479,12 @@ def dashboard():
 def categories():
     u = current_user()
     categories = supabase.table("categories").select("*").eq("user_id", u["id"]).eq("is_active", True).order("sort_order").execute().data
+    
+    # Add subcategory count to each category
+    for category in categories:
+        subcategory_count = supabase.table("subcategories").select("id", count="exact").eq("category_id", category["id"]).eq("user_id", u["id"]).execute().count
+        category["subcategory_count"] = subcategory_count or 0
+    
     return render_template("categories.html", categories=categories, user=u)
 
 @app.route("/category/add", methods=["POST"])
@@ -645,6 +651,7 @@ def add_link_to_subcategory(subcategory_id):
     title = request.form.get("title","").strip()
     url = request.form.get("url","").strip()
     description = request.form.get("description","").strip()
+    image_url = request.form.get("image_url","").strip()
     
     if not title or not url:
         flash("Title and URL required","danger")
@@ -658,15 +665,21 @@ def add_link_to_subcategory(subcategory_id):
     max_pos = links_res.data[0]["sort_order"] if links_res.data else 0
     pos = max_pos + 1
     
+    link_data = {
+        "subcategory_id": subcategory_id,
+        "title": title,
+        "url": url,
+        "description": description,
+        "sort_order": pos,
+        "is_public": True
+    }
+    
+    # Add image_url if provided
+    if image_url:
+        link_data["image_url"] = image_url
+    
     try:
-        supabase.table("links").insert({
-            "subcategory_id": subcategory_id,
-            "title": title,
-            "url": url,
-            "description": description,
-            "sort_order": pos,
-            "is_public": True
-        }).execute()
+        supabase.table("links").insert(link_data).execute()
         flash("Link added successfully","success")
     except Exception as e:
         flash("Error adding link. Please check the URL format.","danger")
@@ -687,6 +700,7 @@ def add_link_to_category(category_id):
     title = request.form.get("title","").strip()
     url = request.form.get("url","").strip()
     description = request.form.get("description","").strip()
+    image_url = request.form.get("image_url","").strip()
     
     if not title or not url:
         flash("Title and URL required","danger")
@@ -700,15 +714,21 @@ def add_link_to_category(category_id):
     max_pos = links_res.data[0]["sort_order"] if links_res.data else 0
     pos = max_pos + 1
     
+    link_data = {
+        "category_id": category_id,
+        "title": title,
+        "url": url,
+        "description": description,
+        "sort_order": pos,
+        "is_public": True
+    }
+    
+    # Add image_url if provided
+    if image_url:
+        link_data["image_url"] = image_url
+    
     try:
-        supabase.table("links").insert({
-            "category_id": category_id,
-            "title": title,
-            "url": url,
-            "description": description,
-            "sort_order": pos,
-            "is_public": True
-        }).execute()
+        supabase.table("links").insert(link_data).execute()
         flash("Link added successfully","success")
     except Exception as e:
         flash("Error adding link. Please check the URL format.","danger")
@@ -877,94 +897,39 @@ def edit_category(category_id):
 def delete_category(category_id):
     u = current_user()
     
-    # First, get all brands in this category
-    brands = supabase.table("brands").select("id").eq("category_id", category_id).eq("user_id", u["id"]).execute().data
+    # First, get all subcategories in this category
+    subcategories = supabase.table("subcategories").select("id").eq("category_id", category_id).eq("user_id", u["id"]).execute().data
     
-    # Delete all links associated with brands in this category
-    for brand in brands:
-        supabase.table("links").delete().eq("brand_id", brand["id"]).eq("user_id", u["id"]).execute()
+    # Delete all links associated with subcategories in this category
+    for subcategory in subcategories:
+        supabase.table("links").delete().eq("subcategory_id", subcategory["id"]).eq("user_id", u["id"]).execute()
     
-    # Delete all brands in this category
-    supabase.table("brands").delete().eq("category_id", category_id).eq("user_id", u["id"]).execute()
+    # Delete all direct links in this category (links without subcategory)
+    supabase.table("links").delete().eq("category_id", category_id).eq("user_id", u["id"]).execute()
+    
+    # Delete all subcategories in this category
+    supabase.table("subcategories").delete().eq("category_id", category_id).eq("user_id", u["id"]).execute()
     
     # Finally, delete the category
     supabase.table("categories").delete().eq("id", category_id).eq("user_id", u["id"]).execute()
     
-    flash("Category and all associated brands and links deleted", "info")
+    flash("Category and all associated subcategories and links deleted", "info")
     return redirect(url_for("dashboard"))
 
-@app.route("/brand/<int:brand_id>/edit", methods=["GET", "POST"])
-@login_required
-def edit_brand(brand_id):
-    u = current_user()
-    brand_res = supabase.table("brands").select("*").eq("id", brand_id).eq("user_id", u["id"]).execute()
-    if not brand_res.data:
-        abort(404)
-    brand = brand_res.data[0]
-    
-    if request.method == "GET":
-        return render_template("edit_brand.html", brand=brand)
-    
-    name = request.form.get("name", "").strip()
-    description = request.form.get("description", "").strip()
-    website_url = request.form.get("website_url", "").strip()
-    logo_url = brand.get("logo_url")  # Keep existing logo by default
-    
-    if not name:
-        flash("Brand name is required", "danger")
-        return render_template("edit_brand.html", brand=brand)
-    
-    if website_url:
-        website_url = normalize_url(website_url)
-    
-    # Handle logo file upload
-    if 'logo_file' in request.files:
-        logo_file = request.files['logo_file']
-        if logo_file and logo_file.filename != '':
-            try:
-                # Upload to Cloudinary
-                upload_result = cloudinary.uploader.upload(
-                    logo_file,
-                    folder="linktree_icons/brands",
-                    transformation=[
-                        {"width": 64, "height": 64, "crop": "fill"},
-                        {"quality": "auto", "fetch_format": "auto"}
-                    ]
-                )
-                logo_url = upload_result['secure_url']
-            except Exception as e:
-                flash(f"Failed to upload logo: {str(e)}", "danger")
-                return render_template("edit_brand.html", brand=brand)
-    
-    try:
-        supabase.table("brands").update({
-            "name": name,
-            "description": description,
-            "website_url": website_url,
-            "logo_url": logo_url
-        }).eq("id", brand_id).execute()
-        flash("Brand updated successfully", "success")
-    except Exception as e:
-        flash("Error updating brand", "danger")
-        
-    return redirect(url_for("dashboard"))
+# --- OLD BRAND ROUTES (DEPRECATED - USING SUBCATEGORIES NOW) ---
+# These routes are commented out since we migrated from brands to subcategories
 
-@app.route("/brand/<int:brand_id>/delete", methods=["POST"])
-@login_required
-def delete_brand(brand_id):
-    u = current_user()
-    
-    # Get the category_id for redirect
-    brand_res = supabase.table("brands").select("category_id").eq("id", brand_id).eq("user_id", u["id"]).execute()
-    category_id = brand_res.data[0]["category_id"] if brand_res.data else None
-    
-    # Delete all links associated with this brand
-    supabase.table("links").delete().eq("brand_id", brand_id).eq("user_id", u["id"]).execute()
-    
-    # Delete the brand
-    supabase.table("brands").delete().eq("id", brand_id).eq("user_id", u["id"]).execute()
-    
-    flash("Brand and all associated links deleted", "info")
+# @app.route("/brand/<int:brand_id>/edit", methods=["GET", "POST"])
+# @login_required
+# def edit_brand(brand_id):
+#     # This route has been replaced by edit_subcategory
+#     return redirect(url_for("dashboard"))
+
+# @app.route("/brand/<int:brand_id>/delete", methods=["POST"])
+# @login_required
+# def delete_brand(brand_id):
+#     # This route has been replaced by delete_subcategory
+#     return redirect(url_for("dashboard"))
     
     # Redirect back to the category page if we have a category_id
     if category_id:
@@ -977,16 +942,25 @@ def delete_brand(brand_id):
 def delete_link(link_id):
     u = current_user()
     
-    # Get the brand_id for redirect
-    link_res = supabase.table("links").select("brand_id").eq("id", link_id).eq("user_id", u["id"]).execute()
-    brand_id = link_res.data[0]["brand_id"] if link_res.data else None
+    # Get the subcategory_id and category_id for redirect
+    link_res = supabase.table("links").select("subcategory_id, category_id").eq("id", link_id).eq("user_id", u["id"]).execute()
+    
+    if not link_res.data:
+        flash("Link not found", "danger")
+        return redirect(url_for("dashboard"))
+    
+    link_data = link_res.data[0]
+    subcategory_id = link_data.get("subcategory_id")
+    category_id = link_data.get("category_id")
     
     supabase.table("links").delete().eq("id", link_id).eq("user_id", u["id"]).execute()
     flash("Link deleted", "info")
     
-    # Redirect back to the brand page if we have a brand_id
-    if brand_id:
-        return redirect(url_for("brand_links", brand_id=brand_id))
+    # Redirect based on where the link was located
+    if subcategory_id:
+        return redirect(url_for("subcategory_links", subcategory_id=subcategory_id))
+    elif category_id:
+        return redirect(url_for("category_subcategories", category_id=category_id))
     else:
         return redirect(url_for("dashboard"))
 
@@ -1128,6 +1102,115 @@ def api_subcategory_links(subcategory_id):
     
     return jsonify({"subcategory": subcategory, "links": links})
 
+# --- Link Auto-Detection API ---
+@app.route("/api/detect-link-info", methods=["POST"])
+@login_required
+def detect_link_info():
+    """Auto-detect product name and image from a URL"""
+    try:
+        data = request.get_json()
+        url = data.get('url', '').strip()
+        
+        if not url:
+            return jsonify({"error": "URL is required"}), 400
+        
+        # Add protocol if missing
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        
+        # Import the scraping functions
+        import requests
+        from bs4 import BeautifulSoup
+        
+        # Scrape the URL
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            return jsonify({"error": f"Could not access the URL: {str(e)}"}), 400
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extract product/page title
+        title = None
+        
+        # Try Open Graph title first
+        og_title = soup.find("meta", property="og:title")
+        if og_title and og_title.get("content"):
+            title = og_title["content"].strip()
+        
+        # Fallback to regular title tag
+        if not title:
+            title_tag = soup.find("title")
+            if title_tag:
+                title = title_tag.text.strip()
+        
+        # Fallback to h1
+        if not title:
+            h1_tag = soup.find("h1")
+            if h1_tag:
+                title = h1_tag.text.strip()
+        
+        # Extract product image
+        image_url = None
+        uploaded_image_url = None
+        
+        # Try Open Graph image first
+        og_image = soup.find("meta", property="og:image")
+        if og_image and og_image.get("content"):
+            image_url = og_image["content"]
+        
+        # Try other common meta tags
+        if not image_url:
+            twitter_image = soup.find("meta", attrs={"name": "twitter:image"})
+            if twitter_image and twitter_image.get("content"):
+                image_url = twitter_image["content"]
+        
+        # Try to find main product image
+        if not image_url:
+            # Look for images with common product image attributes
+            product_img = soup.find("img", {"class": ["product-image", "main-image", "hero-image"]})
+            if product_img and product_img.get("src"):
+                image_url = product_img["src"]
+        
+        # Upload image to Cloudinary if found
+        if image_url:
+            try:
+                # Make image URL absolute if it's relative
+                if image_url.startswith('/'):
+                    from urllib.parse import urljoin
+                    image_url = urljoin(url, image_url)
+                elif not image_url.startswith(('http://', 'https://')):
+                    from urllib.parse import urljoin
+                    image_url = urljoin(url, '/' + image_url)
+                
+                # Upload to Cloudinary
+                upload_result = cloudinary.uploader.upload(
+                    image_url,
+                    folder="linktree_links",
+                    transformation=[
+                        {"width": 200, "height": 200, "crop": "fill"},
+                        {"quality": "auto", "fetch_format": "auto"}
+                    ]
+                )
+                uploaded_image_url = upload_result['secure_url']
+                
+            except Exception as e:
+                print(f"Failed to upload image to Cloudinary: {str(e)}")
+                # Continue without image if upload fails
+        
+        return jsonify({
+            "title": title or "Untitled",
+            "image_url": uploaded_image_url,
+            "original_image_url": image_url
+        })
+        
+    except Exception as e:
+        print(f"Error in detect_link_info: {str(e)}")
+        return jsonify({"error": "Failed to detect link information"}), 500
+
 # Debug OAuth configuration
 @app.route("/oauth-debug")
 def oauth_debug():
@@ -1207,7 +1290,7 @@ def debug():
         all_links = supabase.table("links").select("*").execute()  # All links in database
         clicks = supabase.table("clicks").select("*").execute()
         categories = supabase.table("categories").select("*").eq("user_id", u["id"]).execute()
-        brands = supabase.table("brands").select("*").eq("user_id", u["id"]).execute()
+        subcategories = supabase.table("subcategories").select("*").eq("user_id", u["id"]).execute()
         
         # Test the count queries specifically
         try:
@@ -1221,9 +1304,9 @@ def debug():
             categories_count_test = f"Error: {str(e)}"
             
         try:
-            brands_count_test = supabase.table("brands").select("id", count="exact").eq("user_id", u["id"]).execute()
+            subcategories_count_test = supabase.table("subcategories").select("id", count="exact").eq("user_id", u["id"]).execute()
         except Exception as e:
-            brands_count_test = f"Error: {str(e)}"
+            subcategories_count_test = f"Error: {str(e)}"
         
         return f"""
         <h1>Debug Analytics</h1>
@@ -1235,22 +1318,22 @@ def debug():
         <p><strong>All Links in DB:</strong> {len(all_links.data) if all_links.data else 0}</p>
         <p><strong>Total Clicks in DB:</strong> {len(clicks.data) if clicks.data else 0}</p>
         <p><strong>Your Categories:</strong> {len(categories.data) if categories.data else 0}</p>
-        <p><strong>Your Brands:</strong> {len(brands.data) if brands.data else 0}</p>
+        <p><strong>Your Subcategories:</strong> {len(subcategories.data) if subcategories.data else 0}</p>
         
         <h3>🧮 Count Query Tests:</h3>
         <p><strong>Links Count Query:</strong> {links_count_test.count if hasattr(links_count_test, 'count') else str(links_count_test)}</p>
         <p><strong>Categories Count Query:</strong> {categories_count_test.count if hasattr(categories_count_test, 'count') else str(categories_count_test)}</p>
-        <p><strong>Brands Count Query:</strong> {brands_count_test.count if hasattr(brands_count_test, 'count') else str(brands_count_test)}</p>
+        <p><strong>Subcategories Count Query:</strong> {subcategories_count_test.count if hasattr(subcategories_count_test, 'count') else str(subcategories_count_test)}</p>
         
         <h3>📊 Analytics Function Result:</h3>
         <p><strong>Total Links:</strong> {analytics['total_links']}</p>
         <p><strong>Total Clicks:</strong> {analytics['total_clicks']}</p>
         <p><strong>Categories Count:</strong> {analytics['categories_count']}</p>
-        <p><strong>Brands Count:</strong> {analytics['brands_count']}</p>
+        <p><strong>Subcategories Count:</strong> {analytics['subcategories_count']}</p>
         <p><strong>Trending Links:</strong> {len(analytics['trending_links'])}</p>
         
         <h3>📋 Your Link Details:</h3>
-        {'<br>'.join([f"• <strong>{link['title']}</strong> (ID: {link['id']}, Brand: {link.get('brand_id', 'N/A')})" for link in links.data]) if links.data else '❌ <strong>No links found for your user ID!</strong>'}
+        {'<br>'.join([f"• <strong>{link['title']}</strong> (ID: {link['id']}, Subcategory: {link.get('subcategory_id', 'Direct')}, Category: {link.get('category_id', 'N/A')})" for link in links.data]) if links.data else '❌ <strong>No links found for your user ID!</strong>'}
         
         <h3>🖱️ Click Details (First 10):</h3>
         {'<br>'.join([f"• Click on Link ID: {click['link_id']} at {click.get('clicked_at', 'Unknown time')}" for click in clicks.data[:10]]) if clicks.data else '❌ <strong>No clicks found in database!</strong>'}
@@ -1265,7 +1348,7 @@ def debug():
         <p><a href="/dashboard">🏠 Back to Dashboard</a></p>
         
         <hr>
-        <small><strong>Note:</strong> If you see 0 links, you need to create categories, then brands, then add links to those brands.</small>
+        <small><strong>Note:</strong> If you see 0 links, you need to create categories, then subcategories (optional), then add links to categories or subcategories.</small>
         """
     except Exception as e:
         return f"""

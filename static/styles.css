@@ -2442,6 +2442,21 @@ input[type="checkbox"] {
   text-align: center;
 }
 
+.link-image {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 2px solid var(--border-light);
+  transition: all var(--transition-base);
+}
+
+.link-image:hover {
+  transform: scale(1.05);
+  border-color: var(--primary-solid);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
 .public-link-card h4 {
   margin: 0 0 0.5rem;
   color: var(--text-primary);

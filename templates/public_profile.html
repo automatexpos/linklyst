@@ -228,7 +228,10 @@ function displayDirectLinks(links) {
     
     linkCard.innerHTML = `
       <a href="/r/${link.id}" target="_blank" class="public-link-content">
-        <div class="link-icon">🔗</div>
+        ${link.image_url ? 
+          `<div class="link-icon"><img src="${link.image_url}" alt="${link.title}" class="link-image"></div>` : 
+          `<div class="link-icon">🔗</div>`
+        }
         <h4>${link.title}</h4>
         ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
       </a>
@@ -273,7 +276,10 @@ function displayLinks(links) {
     
     linkCard.innerHTML = `
       <a href="/r/${link.id}" target="_blank" class="public-link-content">
-        <div class="link-icon">🔗</div>
+        ${link.image_url ? 
+          `<div class="link-icon"><img src="${link.image_url}" alt="${link.title}" class="link-image"></div>` : 
+          `<div class="link-icon">🔗</div>`
+        }
         <h4>${link.title}</h4>
         ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
       </a>
