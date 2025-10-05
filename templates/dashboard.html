@@ -136,34 +136,46 @@
   <div class="modal-backdrop" onclick="closeModal('categories-modal')"></div>
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Categories</h3>
+      <div class="category-header-with-toggle">
+        <h3>Categories</h3>
+        <button class="add-category-toggle-btn" onclick="toggleAddCategoryForm()" id="toggleBtn">
+          <span class="plus-icon">+</span>
+          <span class="btn-text">Add Category</span>
+        </button>
+      </div>
       <button class="modal-close" onclick="closeModal('categories-modal')">&times;</button>
     </div>
     <div class="modal-body">
       <section class="card">
-        <form method="post" action="{{ url_for('add_category') }}" class="category-form" enctype="multipart/form-data">
-          <label>
-            Category Name
-            <input name="name" placeholder="e.g. Bags, Shoes, Watches" required>
-          </label>
-          <label>
-            Description
-            <input name="description" placeholder="Brief description (optional)">
-          </label>
-          <label>
-            Color
-            <input name="color" type="color" value="#6366f1">
-          </label>
-          <label>
-            Category Icon
-            <input type="file" name="icon_file" accept="image/*" class="file-input">
-            <div class="file-input-helper">
-              <span class="file-btn">Choose Icon</span>
-              <span class="file-text">Upload custom icon (optional)</span>
+        <!-- Collapsible Form (Initially Hidden) -->
+        <div class="add-category-form-container" id="addCategoryForm" style="display: none;">
+          <form method="post" action="{{ url_for('add_category') }}" class="category-form" enctype="multipart/form-data">
+            <label>
+              Category Name
+              <input name="name" placeholder="e.g. Bags, Shoes, Watches" required>
+            </label>
+            <label>
+              Description
+              <input name="description" placeholder="Brief description (optional)">
+            </label>
+            <label>
+              Color
+              <input name="color" type="color" value="#6366f1">
+            </label>
+            <label>
+              Category Icon
+              <input type="file" name="icon_file" accept="image/*" class="file-input">
+              <div class="file-input-helper">
+                <span class="file-btn">Choose Icon</span>
+                <span class="file-text">Upload custom icon (optional)</span>
+              </div>
+            </label>
+            <div class="form-actions">
+              <button class="btn" type="submit">Add Category</button>
+              <button type="button" class="btn btn-secondary" onclick="toggleAddCategoryForm()">Cancel</button>
             </div>
-          </label>
-          <button class="btn" type="submit">Add Category</button>
-        </form>
+          </form>
+        </div>
 
         {% if categories %}
           <div class="category-grid">
@@ -595,5 +607,161 @@ document.addEventListener('click', function(e) {
 .share-btn:hover {
   background: var(--primary-dark);
 }
+
+/* Collapsible Category Form Styles */
+.category-header-with-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.category-header-with-toggle h3 {
+  margin: 0;
+  flex: 1;
+}
+
+.add-category-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.add-category-toggle-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.add-category-toggle-btn.active {
+  background: #dc3545;
+}
+
+.add-category-toggle-btn.active:hover {
+  background: #c82333;
+}
+
+.plus-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.add-category-toggle-btn.active .plus-icon {
+  transform: rotate(45deg);
+}
+
+.add-category-form-container {
+  overflow: hidden;
+  transition: all 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.add-category-form-container .category-form {
+  animation: slideDown 0.3s ease;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 1.5rem;
+  background: var(--bg-light);
+  margin-top: 1rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.modal-close {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+}
 </style>
+
+<script>
+// Collapsible category form functionality
+function toggleAddCategoryForm() {
+  const form = document.getElementById('addCategoryForm');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const plusIcon = toggleBtn.querySelector('.plus-icon');
+  const btnText = toggleBtn.querySelector('.btn-text');
+  
+  if (form.style.display === 'none' || form.style.display === '') {
+    // Show form
+    form.style.display = 'block';
+    plusIcon.textContent = '×';
+    btnText.textContent = 'Cancel';
+    toggleBtn.classList.add('active');
+    
+    // Focus on the first input
+    setTimeout(() => {
+      const firstInput = form.querySelector('input[name="name"]');
+      if (firstInput) firstInput.focus();
+    }, 100);
+  } else {
+    // Hide form
+    form.style.display = 'none';
+    plusIcon.textContent = '+';
+    btnText.textContent = 'Add Category';
+    toggleBtn.classList.remove('active');
+    
+    // Clear form
+    const formElement = form.querySelector('form');
+    if (formElement) formElement.reset();
+  }
+}
+
+// Initialize form state when modal opens
+document.addEventListener('DOMContentLoaded', function() {
+  const categoriesModal = document.getElementById('categories-modal');
+  if (categoriesModal) {
+    // Watch for modal open events
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          const modal = mutation.target;
+          if (modal.style.display === 'flex') {
+            // Modal is opening, reset form state
+            const form = document.getElementById('addCategoryForm');
+            const toggleBtn = document.getElementById('toggleBtn');
+            if (form && toggleBtn) {
+              const plusIcon = toggleBtn.querySelector('.plus-icon');
+              const btnText = toggleBtn.querySelector('.btn-text');
+              
+              // Force form to be hidden
+              form.style.display = 'none';
+              plusIcon.textContent = '+';
+              btnText.textContent = 'Add Category';
+              toggleBtn.classList.remove('active');
+            }
+          }
+        }
+      });
+    });
+    
+    observer.observe(categoriesModal, { attributes: true });
+  }
+});
+</script>
 {% endblock %}

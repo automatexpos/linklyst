@@ -6,41 +6,49 @@
   <p>Organize your products into categories like Bags, Shoes, Watches, etc.</p>
 </div>
 
+<!-- Collapsible Add Category Section -->
 <div class="form-section">
   <section class="card">
-    <h3>Add New Category</h3>
-    <form method="post" action="{{ url_for('add_category') }}" class="category-form">
-      <div class="form-group">
-        <label>
-          Category Name
-          <input name="name" placeholder="e.g. Bags, Shoes, Watches" required>
-        </label>
-      </div>
-      <div class="form-group">
-        <label>
-          Description
-          <textarea name="description" placeholder="Brief description of this category"></textarea>
-        </label>
-      </div>
-      <div class="form-group">
-        <label>
-          Theme Color
-          <input name="color" type="color" value="#6366f1">
-        </label>
-      </div>
-      <div class="form-actions">
-        <button class="btn" type="submit">Add Category</button>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-      </div>
-    </form>
-  </section>
-</div>
-
-<div class="form-section">
-  <section class="card">
-    <h3>Your Categories</h3>
+    <div class="category-header-with-toggle">
+      <h3>Categories</h3>
+      <button class="add-category-toggle-btn" onclick="toggleAddCategoryForm()" id="toggleBtn">
+        <span class="plus-icon">+</span>
+        <span class="btn-text">Add Category</span>
+      </button>
+    </div>
+    
+    <!-- Collapsible Form (Initially Hidden) -->
+    <div class="add-category-form-container" id="addCategoryForm" style="display: none;">
+      <div class="form-divider"></div>
+      <form method="post" action="{{ url_for('add_category') }}" class="category-form">
+        <div class="form-group">
+          <label>
+            Category Name
+            <input name="name" placeholder="e.g. Bags, Shoes, Watches" required>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            Description
+            <textarea name="description" placeholder="Brief description of this category"></textarea>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            Theme Color
+            <input name="color" type="color" value="#6366f1">
+          </label>
+        </div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Add Category</button>
+          <button type="button" class="btn btn-secondary" onclick="toggleAddCategoryForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Categories Grid -->
     {% if categories %}
-      <div class="category-grid">
+      <div class="category-grid" style="margin-top: 1.5rem;">
         {% for category in categories %}
           <div class="category-card" data-category-id="{{ category.id }}">
             <div class="category-color-bar" style="background-color: {{ category.color }}"></div>
@@ -62,11 +70,171 @@
         {% endfor %}
       </div>
     {% else %}
-      <div class="empty-state">
+      <div class="empty-state" style="margin-top: 1.5rem;">
         <h4>No categories yet</h4>
         <p>Create your first category to start organizing your products.</p>
       </div>
     {% endif %}
   </section>
 </div>
+
+<!-- JavaScript for Toggle Functionality -->
+<script>
+function toggleAddCategoryForm() {
+  const form = document.getElementById('addCategoryForm');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const plusIcon = toggleBtn.querySelector('.plus-icon');
+  const btnText = toggleBtn.querySelector('.btn-text');
+  
+  if (!form.classList.contains('show')) {
+    // Show form
+    form.classList.add('show');
+    form.style.display = 'block';
+    plusIcon.textContent = '×';
+    btnText.textContent = 'Cancel';
+    toggleBtn.classList.add('active');
+    
+    // Focus on the first input
+    setTimeout(() => {
+      const firstInput = form.querySelector('input[name="name"]');
+      if (firstInput) firstInput.focus();
+    }, 100);
+  } else {
+    // Hide form
+    form.classList.remove('show');
+    form.style.display = 'none';
+    plusIcon.textContent = '+';
+    btnText.textContent = 'Add Category';
+    toggleBtn.classList.remove('active');
+    
+    // Clear form
+    const formElement = form.querySelector('form');
+    if (formElement) formElement.reset();
+  }
+}
+
+// Initialize form state and handle successful submission
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('addCategoryForm');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const plusIcon = toggleBtn.querySelector('.plus-icon');
+  const btnText = toggleBtn.querySelector('.btn-text');
+  
+  // Force initial state - form hidden
+  form.classList.remove('show');
+  form.style.display = 'none';
+  plusIcon.textContent = '+';
+  btnText.textContent = 'Add Category';
+  toggleBtn.classList.remove('active');
+  
+  // Check if there are any success messages (form was submitted successfully)
+  const successMessages = document.querySelectorAll('.alert.alert-success, .flash-message.success');
+  if (successMessages.length > 0) {
+    // Keep form closed on page reload after successful submission
+    form.classList.remove('show');
+    form.style.display = 'none';
+  }
+  
+  // Also check for error messages - if there are errors, show the form
+  const errorMessages = document.querySelectorAll('.alert.alert-danger, .flash-message.danger, .flash-message.error');
+  if (errorMessages.length > 0) {
+    // Show form if there were validation errors
+    form.classList.add('show');
+    form.style.display = 'block';
+    plusIcon.textContent = '×';
+    btnText.textContent = 'Cancel';
+    toggleBtn.classList.add('active');
+  }
+});
+</script>
+
+<!-- CSS for Toggle Button and Form -->
+<style>
+.category-header-with-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.add-category-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.add-category-toggle-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.add-category-toggle-btn.active {
+  background: #dc3545;
+}
+
+.add-category-toggle-btn.active:hover {
+  background: #c82333;
+}
+
+.plus-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.add-category-toggle-btn.active .plus-icon {
+  transform: rotate(45deg);
+}
+
+.add-category-form-container {
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: none !important; /* Force initial hidden state */
+}
+
+.add-category-form-container.show {
+  display: block !important;
+}
+
+.form-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 1.5rem 0;
+}
+
+.category-form {
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.empty-state h4 {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+</style>
 {% endblock %}
