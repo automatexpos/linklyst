@@ -15,34 +15,49 @@
 
 <!-- Add Direct Link Section -->
 <section class="card card-premium animate-slide-in">
-  <h3>Quick Add Link</h3>
-  <p class="text-small">Add a link directly to this category without creating a subcategory</p>
-  <form method="post" action="{{ url_for('add_link_to_category', category_id=category.id) }}" class="small-form" id="quick-add-form">
-    <div class="form-group-with-button">
+  <div class="form-header-with-toggle">
+    <div class="form-header-text">
+      <h3>Quick Add Link</h3>
+      <p class="text-small">Add a link directly to this category without creating a subcategory</p>
+    </div>
+    <button class="add-form-toggle-btn" onclick="toggleQuickLinkForm()" id="quickLinkToggleBtn">
+      <span class="plus-icon">+</span>
+      <span class="btn-text">Add Link</span>
+    </button>
+  </div>
+  
+  <!-- Collapsible Form (Initially Hidden) -->
+  <div class="collapsible-form-container" id="quickLinkForm" style="display: none;">
+    <form method="post" action="{{ url_for('add_link_to_category', category_id=category.id) }}" class="small-form" id="quick-add-form">
+      <div class="form-group-with-button">
+        <label>
+          URL
+          <input name="url" id="quick-url" placeholder="https://example.com" required>
+        </label>
+        <button type="button" class="btn btn-outline btn-detect" onclick="detectLinkInfo('quick')">
+          <span class="detect-text">Select</span>
+          <span class="detect-loading" style="display: none;">📡</span>
+        </button>
+      </div>
       <label>
-        URL
-        <input name="url" id="quick-url" placeholder="https://example.com" required>
+        Link Title
+        <input name="title" id="quick-title" placeholder="e.g. Company Website, Portfolio" required>
       </label>
-      <button type="button" class="btn btn-outline btn-detect" onclick="detectLinkInfo('quick')">
-        <span class="detect-text">Select</span>
-        <span class="detect-loading" style="display: none;">📡</span>
-      </button>
-    </div>
-    <label>
-      Link Title
-      <input name="title" id="quick-title" placeholder="e.g. Company Website, Portfolio" required>
-    </label>
-    <label>
-      Description (Optional)
-      <input name="description" id="quick-description" placeholder="Brief description">
-    </label>
-    <input type="hidden" name="image_url" id="quick-image-url">
-    <div class="detected-image" id="quick-detected-image" style="display: none;">
-      <img src="" alt="Detected image" class="preview-image">
-      <span class="image-label">Auto-detected image</span>
-    </div>
-    <button class="btn btn-primary" type="submit">Add Direct Link</button>
-  </form>
+      <label>
+        Description (Optional)
+        <input name="description" id="quick-description" placeholder="Brief description">
+      </label>
+      <input type="hidden" name="image_url" id="quick-image-url">
+      <div class="detected-image" id="quick-detected-image" style="display: none;">
+        <img src="" alt="Detected image" class="preview-image">
+        <span class="image-label">Auto-detected image</span>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Add Direct Link</button>
+        <button type="button" class="btn btn-secondary" onclick="toggleQuickLinkForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
 </section>
 
 <!-- Direct Links Display -->
@@ -78,44 +93,56 @@
 
 <!-- Add Subcategory Section -->
 <section class="card card-premium animate-slide-in">
-  <h3>Add New Subcategory</h3>
-  <p class="text-small">Create organized groups for your links</p>
-  <form method="post" action="{{ url_for('add_subcategory', category_id=category.id) }}" class="subcategory-form" enctype="multipart/form-data">
-    <div class="form-row">
-      <div class="form-group">
-        <label>
-          Subcategory Name
-          <input name="name" placeholder="e.g. Fashion Brands, Tech Tools, Resources" required>
-        </label>
-      </div>
-      <div class="form-group">
-        <label>
-          Color
-          <input name="color" type="color" value="#6366f1">
-        </label>
-      </div>
+  <div class="form-header-with-toggle">
+    <div class="form-header-text">
+      <h3>Add New Subcategory</h3>
+      <p class="text-small">Create organized groups for your links</p>
     </div>
-    <div class="form-group">
-      <label>
-        Description
-        <textarea name="description" placeholder="Brief description of this subcategory"></textarea>
-      </label>
-    </div>
-    <div class="form-group">
-      <label>
-        Subcategory Icon
-        <input type="file" name="icon_file" accept="image/*" class="file-input">
-        <div class="file-input-helper">
-          <span class="file-btn">Choose Icon</span>
-          <span class="file-text">Upload custom icon (optional)</span>
+    <button class="add-form-toggle-btn" onclick="toggleSubcategoryForm()" id="subcategoryToggleBtn">
+      <span class="plus-icon">+</span>
+      <span class="btn-text">Add Subcategory</span>
+    </button>
+  </div>
+  
+  <!-- Collapsible Form (Initially Hidden) -->
+  <div class="collapsible-form-container" id="subcategoryForm" style="display: none;">
+    <form method="post" action="{{ url_for('add_subcategory', category_id=category.id) }}" class="subcategory-form" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group">
+          <label>
+            Subcategory Name
+            <input name="name" placeholder="e.g. Fashion Brands, Tech Tools, Resources" required>
+          </label>
         </div>
-      </label>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-primary" type="submit">Create Subcategory</button>
-      <a href="{{ url_for('categories') }}" class="btn btn-outline">Back to Categories</a>
-    </div>
-  </form>
+        <div class="form-group">
+          <label>
+            Color
+            <input name="color" type="color" value="#6366f1">
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>
+          Description
+          <textarea name="description" placeholder="Brief description of this subcategory"></textarea>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>
+          Subcategory Icon
+          <input type="file" name="icon_file" accept="image/*" class="file-input">
+          <div class="file-input-helper">
+            <span class="file-btn">Choose Icon</span>
+            <span class="file-text">Upload custom icon (optional)</span>
+          </div>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Create Subcategory</button>
+        <button type="button" class="btn btn-secondary" onclick="toggleSubcategoryForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
 </section>
 
 <!-- Subcategories Display -->
@@ -446,5 +473,228 @@ async function detectLinkInfo(formType) {
     detectBtn.querySelector('.detect-loading').style.display = 'none';
   }
 }
+
+// Collapsible form functionality
+function toggleQuickLinkForm() {
+  const form = document.getElementById('quickLinkForm');
+  const toggleBtn = document.getElementById('quickLinkToggleBtn');
+  const plusIcon = toggleBtn.querySelector('.plus-icon');
+  const btnText = toggleBtn.querySelector('.btn-text');
+  
+  if (form.style.display === 'none' || form.style.display === '') {
+    // Show form
+    form.style.display = 'block';
+    plusIcon.textContent = '×';
+    btnText.textContent = 'Cancel';
+    toggleBtn.classList.add('active');
+    
+    // Focus on the first input
+    setTimeout(() => {
+      const firstInput = form.querySelector('input[name="url"]');
+      if (firstInput) firstInput.focus();
+    }, 100);
+  } else {
+    // Hide form
+    form.style.display = 'none';
+    plusIcon.textContent = '+';
+    btnText.textContent = 'Add Link';
+    toggleBtn.classList.remove('active');
+    
+    // Clear form
+    const formElement = form.querySelector('form');
+    if (formElement) formElement.reset();
+    
+    // Clear detected image
+    const detectedImage = document.getElementById('quick-detected-image');
+    if (detectedImage) detectedImage.style.display = 'none';
+    document.getElementById('quick-image-url').value = '';
+  }
+}
+
+function toggleSubcategoryForm() {
+  const form = document.getElementById('subcategoryForm');
+  const toggleBtn = document.getElementById('subcategoryToggleBtn');
+  const plusIcon = toggleBtn.querySelector('.plus-icon');
+  const btnText = toggleBtn.querySelector('.btn-text');
+  
+  if (form.style.display === 'none' || form.style.display === '') {
+    // Show form
+    form.style.display = 'block';
+    plusIcon.textContent = '×';
+    btnText.textContent = 'Cancel';
+    toggleBtn.classList.add('active');
+    
+    // Focus on the first input
+    setTimeout(() => {
+      const firstInput = form.querySelector('input[name="name"]');
+      if (firstInput) firstInput.focus();
+    }, 100);
+  } else {
+    // Hide form
+    form.style.display = 'none';
+    plusIcon.textContent = '+';
+    btnText.textContent = 'Add Subcategory';
+    toggleBtn.classList.remove('active');
+    
+    // Clear form
+    const formElement = form.querySelector('form');
+    if (formElement) formElement.reset();
+  }
+}
+
+// Initialize form states and handle successful submission
+document.addEventListener('DOMContentLoaded', function() {
+  const quickLinkForm = document.getElementById('quickLinkForm');
+  const subcategoryForm = document.getElementById('subcategoryForm');
+  const quickLinkToggle = document.getElementById('quickLinkToggleBtn');
+  const subcategoryToggle = document.getElementById('subcategoryToggleBtn');
+  
+  // Force initial states - forms hidden
+  if (quickLinkForm && quickLinkToggle) {
+    quickLinkForm.style.display = 'none';
+    quickLinkToggle.querySelector('.plus-icon').textContent = '+';
+    quickLinkToggle.querySelector('.btn-text').textContent = 'Add Link';
+    quickLinkToggle.classList.remove('active');
+  }
+  
+  if (subcategoryForm && subcategoryToggle) {
+    subcategoryForm.style.display = 'none';
+    subcategoryToggle.querySelector('.plus-icon').textContent = '+';
+    subcategoryToggle.querySelector('.btn-text').textContent = 'Add Subcategory';
+    subcategoryToggle.classList.remove('active');
+  }
+  
+  // Check for error messages - if there are errors, show the appropriate form
+  const errorMessages = document.querySelectorAll('.alert.alert-danger, .flash-message.danger, .flash-message.error');
+  if (errorMessages.length > 0) {
+    // Try to determine which form had errors based on the current URL or form fields
+    // For now, show the subcategory form if there are errors
+    // You could make this more sophisticated by checking error content
+    if (subcategoryForm && subcategoryToggle) {
+      subcategoryForm.style.display = 'block';
+      subcategoryToggle.querySelector('.plus-icon').textContent = '×';
+      subcategoryToggle.querySelector('.btn-text').textContent = 'Cancel';
+      subcategoryToggle.classList.add('active');
+    }
+  }
+});
 </script>
+
+<style>
+/* Collapsible Form Styles */
+.form-header-with-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-header-text {
+  flex: 1;
+}
+
+.form-header-text h3 {
+  margin: 0 0 0.5rem 0;
+}
+
+.form-header-text p {
+  margin: 0;
+}
+
+.add-form-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.add-form-toggle-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.add-form-toggle-btn.active {
+  background: #dc3545;
+}
+
+.add-form-toggle-btn.active:hover {
+  background: #c82333;
+}
+
+.plus-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.add-form-toggle-btn.active .plus-icon {
+  transform: rotate(45deg);
+}
+
+.collapsible-form-container {
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.collapsible-form-container form {
+  animation: slideDown 0.3s ease;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  margin-top: 1rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-light);
+  color: var(--text-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .form-header-with-toggle {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .add-form-toggle-btn {
+    align-self: flex-start;
+  }
+}
+</style>
 {% endblock %}
