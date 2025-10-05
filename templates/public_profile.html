@@ -94,6 +94,22 @@ let currentSubcategoryId = null;
 let currentCategoryName = '';
 let currentSubcategoryName = '';
 
+// Check for direct category/subcategory linking
+const urlParams = new URLSearchParams(window.location.search);
+const directCategoryId = urlParams.get('category');
+const directSubcategoryId = urlParams.get('subcategory');
+
+// Auto-load content if direct links are provided
+window.addEventListener('DOMContentLoaded', function() {
+  if (directSubcategoryId) {
+    // Load subcategory directly
+    loadSubcategoryDirect(directSubcategoryId);
+  } else if (directCategoryId) {
+    // Load category directly
+    toggleCategory(parseInt(directCategoryId));
+  }
+});
+
 function showCategories() {
   document.getElementById('categoriesGrid').style.display = 'grid';
   document.getElementById('contentContainer').style.display = 'none';
@@ -148,6 +164,41 @@ async function toggleCategory(categoryId) {
   } catch (error) {
     console.error('Error loading category content:', error);
     alert('Error loading category content');
+  } finally {
+    hideLoading();
+  }
+}
+
+async function loadSubcategoryDirect(subcategoryId) {
+  showLoading();
+  
+  try {
+    const response = await fetch(`/api/subcategory/${subcategoryId}/links`);
+    const data = await response.json();
+    
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+    
+    currentSubcategoryId = subcategoryId;
+    currentSubcategoryName = data.subcategory.name;
+    
+    // Show links directly
+    document.getElementById('linksTitle').textContent = `${currentSubcategoryName} Links`;
+    displayLinks(data.links);
+    showLinks();
+    
+    // Update back button to go to categories
+    const backBtn = document.querySelector('.back-links-btn');
+    if (backBtn) {
+      backBtn.onclick = () => showCategories();
+      backBtn.innerHTML = '← Back to Categories';
+    }
+    
+  } catch (error) {
+    console.error('Error loading subcategory:', error);
+    alert('Error loading subcategory');
   } finally {
     hideLoading();
   }

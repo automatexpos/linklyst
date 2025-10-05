@@ -1015,6 +1015,16 @@ def edit_profile():
     return redirect(url_for("dashboard"))
 
 # --- Public page ---
+@app.route("/u/<username>/category/<int:category_id>")
+def public_category_direct(username, category_id):
+    """Direct link to a specific category"""
+    return redirect(url_for('public_profile', username=username, category=category_id))
+
+@app.route("/u/<username>/subcategory/<int:subcategory_id>")
+def public_subcategory_direct(username, subcategory_id):
+    """Direct link to a specific subcategory"""
+    return redirect(url_for('public_profile', username=username, subcategory=subcategory_id))
+
 @app.route("/u/<username>")
 def public_profile(username):
     user_res = supabase.table("users").select("*").eq("username",username).execute()
@@ -1022,6 +1032,10 @@ def public_profile(username):
         abort(404)
     user_row = user_res.data[0]
     profile = supabase.table("profiles").select("*").eq("user_id",user_row["id"]).execute().data[0]
+    
+    # Check for direct category or subcategory linking via URL parameters
+    category_id = request.args.get('category')
+    subcategory_id = request.args.get('subcategory')
     
     # Get categories for public display
     try:
@@ -1031,7 +1045,8 @@ def public_profile(username):
         links = supabase.table("links").select("*").eq("user_id",user_row["id"]).eq("is_public",True).order("sort_order").execute().data
         return render_template("profile.html", profile=profile, user=user_row, links=links)
     
-    return render_template("public_profile.html", profile=profile, user=user_row, categories=categories)
+    return render_template("public_profile.html", profile=profile, user=user_row, categories=categories, 
+                         direct_category_id=category_id, direct_subcategory_id=subcategory_id)
 
 # --- Redirect + record click ---
 @app.route("/r/<link_id>")
@@ -1102,7 +1117,33 @@ def api_subcategory_links(subcategory_id):
     
     return jsonify({"subcategory": subcategory, "links": links})
 
-# --- Link Auto-Detection API ---
+# --- Health Check & Debugging APIs ---
+@app.route("/api/health", methods=["GET"])
+def health_check():
+    """Simple health check endpoint"""
+    return jsonify({"status": "healthy", "timestamp": str(datetime.now())})
+
+@app.route("/api/test-dependencies", methods=["GET"])
+def test_dependencies():
+    """Test if all required dependencies are available"""
+    try:
+        import requests
+        import bs4
+        import cloudinary
+        import cloudinary.uploader
+        
+        return jsonify({
+            "status": "success",
+            "requests": requests.__version__,
+            "beautifulsoup4": bs4.__version__,
+            "cloudinary": cloudinary.__version__
+        })
+    except ImportError as e:
+        return jsonify({
+            "status": "error",
+            "error": f"Missing dependency: {str(e)}"
+        }), 500
+
 @app.route("/api/detect-link-info", methods=["POST"])
 @login_required
 def detect_link_info():
@@ -1119,14 +1160,17 @@ def detect_link_info():
             url = 'https://' + url
         
         # Import the scraping functions
-        import requests
-        from bs4 import BeautifulSoup
+        try:
+            import requests
+            from bs4 import BeautifulSoup
+        except ImportError as e:
+            return jsonify({"error": f"Missing required packages: {str(e)}"}), 500
         
         # Scrape the URL
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
         
         try:
-            response = requests.get(url, headers=headers, timeout=10)
+            response = requests.get(url, headers=headers, timeout=15)
             response.raise_for_status()
         except requests.RequestException as e:
             return jsonify({"error": f"Could not access the URL: {str(e)}"}), 400
@@ -1187,29 +1231,36 @@ def detect_link_info():
                     image_url = urljoin(url, '/' + image_url)
                 
                 # Upload to Cloudinary
-                upload_result = cloudinary.uploader.upload(
-                    image_url,
-                    folder="linktree_links",
-                    transformation=[
-                        {"width": 200, "height": 200, "crop": "fill"},
-                        {"quality": "auto", "fetch_format": "auto"}
-                    ]
-                )
-                uploaded_image_url = upload_result['secure_url']
+                try:
+                    upload_result = cloudinary.uploader.upload(
+                        image_url,
+                        folder="linktree_links",
+                        transformation=[
+                            {"width": 200, "height": 200, "crop": "fill"},
+                            {"quality": "auto", "fetch_format": "auto"}
+                        ]
+                    )
+                    uploaded_image_url = upload_result['secure_url']
+                except Exception as cloudinary_error:
+                    print(f"Cloudinary upload failed: {str(cloudinary_error)}")
+                    # Continue without image if Cloudinary upload fails
                 
             except Exception as e:
-                print(f"Failed to upload image to Cloudinary: {str(e)}")
-                # Continue without image if upload fails
+                print(f"Failed to process image: {str(e)}")
+                # Continue without image if image processing fails
         
         return jsonify({
             "title": title or "Untitled",
-            "image_url": uploaded_image_url,
-            "original_image_url": image_url
+            "image_url": uploaded_image_url or image_url,  # Fallback to original image if Cloudinary fails
+            "original_image_url": image_url,
+            "cloudinary_success": uploaded_image_url is not None
         })
         
     except Exception as e:
         print(f"Error in detect_link_info: {str(e)}")
-        return jsonify({"error": "Failed to detect link information"}), 500
+        import traceback
+        traceback.print_exc()  # Print full stack trace for debugging
+        return jsonify({"error": f"Failed to detect link information: {str(e)}"}), 500
 
 # Debug OAuth configuration
 @app.route("/oauth-debug")

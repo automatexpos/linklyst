@@ -179,6 +179,7 @@
                   {% endif %}
                 </div>
                 <div class="category-actions">
+                  <button onclick="showShareModal({{ category.id }}, '{{ category.name }}')" class="share-btn" title="Get Shareable Link">🔗</button>
                   <a href="{{ url_for('edit_category', category_id=category.id) }}" class="edit-btn" title="Edit Category">✏️</a>
                   <form method="post" action="{{ url_for('delete_category', category_id=category.id) }}" class="delete-form" onsubmit="return confirm('Are you sure you want to delete this category? This will also delete all associated brands and links.')">
                     <button type="submit" class="delete-btn" title="Delete Category">🗑️</button>
@@ -367,5 +368,232 @@ document.addEventListener('click', function(e) {
     }
   }
 });
+
+function showShareModal(categoryId, categoryName) {
+  const baseUrl = '{{ site_base }}';
+  const username = '{{ user.username }}';
+  
+  // Generate shareable URLs (ensure baseUrl ends with slash)
+  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+  const categoryUrl = `${normalizedBaseUrl}u/${username}?category=${categoryId}`;
+  const categoryDirectUrl = `${normalizedBaseUrl}u/${username}/category/${categoryId}`;
+  
+  const modal = document.createElement('div');
+  modal.className = 'share-modal-overlay';
+  modal.innerHTML = `
+    <div class="share-modal">
+      <div class="share-modal-header">
+        <h3>Share "${categoryName}" Category</h3>
+        <button onclick="closeShareModal()" class="close-btn">×</button>
+      </div>
+      
+      <div class="share-modal-content">
+        <div class="share-option">
+          <label>Direct Category Link:</label>
+          <div class="url-copy-container">
+            <input type="text" value="${categoryUrl}" readonly onclick="this.select()">
+            <button onclick="copyToClipboard('${categoryUrl}')" class="copy-btn">Copy</button>
+          </div>
+          <small>Opens your profile with this category expanded</small>
+        </div>
+        
+        <div class="share-option">
+          <label>Clean Category Link:</label>
+          <div class="url-copy-container">
+            <input type="text" value="${categoryDirectUrl}" readonly onclick="this.select()">
+            <button onclick="copyToClipboard('${categoryDirectUrl}')" class="copy-btn">Copy</button>
+          </div>
+          <small>Redirects directly to the category</small>
+        </div>
+        
+        <div class="share-tips">
+          <strong>💡 Tips:</strong>
+          <ul>
+            <li>Share these links on social media to direct followers to specific categories</li>
+            <li>Use in email signatures or business cards</li>
+            <li>QR codes can be generated from these URLs</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+function closeShareModal() {
+  const modal = document.querySelector('.share-modal-overlay');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Show success feedback
+    const event = new Event('linkCopied');
+    event.copiedText = text;
+    document.dispatchEvent(event);
+    
+    // Visual feedback
+    const buttons = document.querySelectorAll('.copy-btn');
+    buttons.forEach(btn => {
+      if (btn.onclick.toString().includes(text)) {
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.background = '#10b981';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+        }, 2000);
+      }
+    });
+  }).catch(() => {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    alert('Link copied to clipboard!');
+  });
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('share-modal-overlay')) {
+    closeShareModal();
+  }
+});
 </script>
+
+<!-- Share Modal Styles -->
+<style>
+.share-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.share-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.share-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.share-modal-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--text-muted);
+}
+
+.share-modal-content {
+  padding: 1.5rem;
+}
+
+.share-option {
+  margin-bottom: 1.5rem;
+}
+
+.share-option label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.url-copy-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.url-copy-container input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid var(--border-light);
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  background: var(--bg-light);
+}
+
+.copy-btn {
+  padding: 0.75rem 1rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.copy-btn:hover {
+  background: var(--primary-dark);
+}
+
+.share-option small {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.share-tips {
+  background: var(--bg-light);
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1.5rem;
+}
+
+.share-tips ul {
+  margin: 0.5rem 0 0 1rem;
+  padding: 0;
+}
+
+.share-tips li {
+  margin-bottom: 0.25rem;
+}
+
+.share-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.share-btn:hover {
+  background: var(--primary-dark);
+}
+</style>
 {% endblock %}
