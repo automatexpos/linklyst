@@ -576,8 +576,17 @@ textarea {
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, var(--secondary));
-  box-shadow: var(--shadow-md), var(--warning-glow);
+  background: transparent;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary:hover {
+  background: #dc3545;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-ghost {
@@ -596,16 +605,16 @@ textarea {
 
 .btn-outline {
   background: var(--bg-glass);
-  color: var(--text-primary);
-  border: 1.5px solid var(--border-strong);
+  color: #dc3545;
+  border: 1.5px solid #dc3545;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
 }
 
 .btn-outline:hover {
-  background: var(--bg-primary);
-  border-color: var(--primary-solid);
-  color: var(--primary-solid);
+  background: #dc3545;
+  border-color: #dc3545;
+  color: white;
 }
 
 .btn-danger {
