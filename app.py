@@ -666,6 +666,7 @@ def add_link_to_subcategory(subcategory_id):
     pos = max_pos + 1
     
     link_data = {
+        "user_id": u["id"],
         "subcategory_id": subcategory_id,
         "title": title,
         "url": url,
@@ -679,9 +680,12 @@ def add_link_to_subcategory(subcategory_id):
         link_data["image_url"] = image_url
     
     try:
-        supabase.table("links").insert(link_data).execute()
+        print(f"DEBUG: Inserting link with data: {link_data}")  # Debug log
+        result = supabase.table("links").insert(link_data).execute()
+        print(f"DEBUG: Insert result: {result.data}")  # Debug log
         flash("Link added successfully","success")
     except Exception as e:
+        print(f"DEBUG: Error inserting link: {str(e)}")  # Debug log
         flash("Error adding link. Please check the URL format.","danger")
         
     return redirect(url_for("subcategory_links", subcategory_id=subcategory_id))
@@ -715,6 +719,7 @@ def add_link_to_category(category_id):
     pos = max_pos + 1
     
     link_data = {
+        "user_id": u["id"],
         "category_id": category_id,
         "title": title,
         "url": url,
@@ -728,9 +733,12 @@ def add_link_to_category(category_id):
         link_data["image_url"] = image_url
     
     try:
-        supabase.table("links").insert(link_data).execute()
+        print(f"DEBUG: Inserting category link with data: {link_data}")  # Debug log
+        result = supabase.table("links").insert(link_data).execute()
+        print(f"DEBUG: Insert result: {result.data}")  # Debug log
         flash("Link added successfully","success")
     except Exception as e:
+        print(f"DEBUG: Error inserting category link: {str(e)}")  # Debug log
         flash("Error adding link. Please check the URL format.","danger")
         
     return redirect(url_for("category_subcategories", category_id=category_id))
@@ -803,7 +811,7 @@ def delete_subcategory(subcategory_id):
     
     try:
         # Delete all links in this subcategory first
-        supabase.table("links").delete().eq("subcategory_id", subcategory_id).execute()
+        supabase.table("links").delete().eq("subcategory_id", subcategory_id).eq("user_id", u["id"]).execute()
         # Delete the subcategory
         supabase.table("subcategories").delete().eq("id", subcategory_id).execute()
         flash(f"Subcategory '{subcategory['name']}' deleted successfully", "success")
@@ -1339,6 +1347,10 @@ def debug():
         # Get raw data for debugging
         links = supabase.table("links").select("*").eq("user_id", u["id"]).execute()
         all_links = supabase.table("links").select("*").execute()  # All links in database
+        
+        # Check for orphaned links (links without user_id or with null user_id)
+        orphaned_links = supabase.table("links").select("*").is_("user_id", "null").execute()
+        
         clicks = supabase.table("clicks").select("*").execute()
         categories = supabase.table("categories").select("*").eq("user_id", u["id"]).execute()
         subcategories = supabase.table("subcategories").select("*").eq("user_id", u["id"]).execute()
@@ -1384,7 +1396,10 @@ def debug():
         <p><strong>Trending Links:</strong> {len(analytics['trending_links'])}</p>
         
         <h3>📋 Your Link Details:</h3>
-        {'<br>'.join([f"• <strong>{link['title']}</strong> (ID: {link['id']}, Subcategory: {link.get('subcategory_id', 'Direct')}, Category: {link.get('category_id', 'N/A')})" for link in links.data]) if links.data else '❌ <strong>No links found for your user ID!</strong>'}
+        {'<br>'.join([f"• <strong>{link['title']}</strong> (ID: {link['id']}, User ID: {link.get('user_id', 'MISSING!')}, Subcategory: {link.get('subcategory_id', 'Direct')}, Category: {link.get('category_id', 'N/A')})" for link in links.data]) if links.data else '❌ <strong>No links found for your user ID!</strong>'}
+        
+        <h3>🔍 Orphaned Links (No User ID):</h3>
+        {'<br>'.join([f"• <strong>{link['title']}</strong> (ID: {link['id']}, User ID: {link.get('user_id', 'NULL')}, Category: {link.get('category_id', 'N/A')}, Subcategory: {link.get('subcategory_id', 'N/A')})" for link in orphaned_links.data]) if orphaned_links.data else '✅ <strong>No orphaned links found!</strong>'}
         
         <h3>🖱️ Click Details (First 10):</h3>
         {'<br>'.join([f"• Click on Link ID: {click['link_id']} at {click.get('clicked_at', 'Unknown time')}" for click in clicks.data[:10]]) if clicks.data else '❌ <strong>No clicks found in database!</strong>'}
@@ -1407,5 +1422,50 @@ def debug():
         <p>User ID: {u['id']}</p>
         <p>Error: {str(e)}</p>
         <p>❌ Error occurred during debugging</p>
+        <p><a href="/fix-orphaned-links">🔧 Fix Orphaned Links</a></p>
         <a href="/dashboard">Back to Dashboard</a>
+        """
+
+@app.route("/fix-orphaned-links")
+@login_required  
+def fix_orphaned_links():
+    u = current_user()
+    try:
+        # Get orphaned links that belong to user's categories or subcategories
+        orphaned_links = supabase.table("links").select("*").is_("user_id", "null").execute()
+        
+        fixed_count = 0
+        
+        if orphaned_links.data:
+            for link in orphaned_links.data:
+                # Try to determine ownership through category or subcategory
+                if link.get("category_id"):
+                    # Check if category belongs to current user
+                    category = supabase.table("categories").select("user_id").eq("id", link["category_id"]).eq("user_id", u["id"]).execute()
+                    if category.data:
+                        # This link belongs to user's category
+                        supabase.table("links").update({"user_id": u["id"]}).eq("id", link["id"]).execute()
+                        fixed_count += 1
+                        
+                elif link.get("subcategory_id"):
+                    # Check if subcategory belongs to current user through category
+                    subcategory = supabase.table("subcategories").select("*, categories!inner(user_id)").eq("id", link["subcategory_id"]).eq("categories.user_id", u["id"]).execute()
+                    if subcategory.data:
+                        # This link belongs to user's subcategory
+                        supabase.table("links").update({"user_id": u["id"]}).eq("id", link["id"]).execute()
+                        fixed_count += 1
+        
+        return f"""
+        <h1>Fix Orphaned Links</h1>
+        <p><strong>Fixed {fixed_count} orphaned links for your account.</strong></p>
+        <p>These links now have proper user ownership and can be deleted normally.</p>
+        <p><a href="/debug">🔍 View Debug Info</a></p>
+        <p><a href="/dashboard">🏠 Back to Dashboard</a></p>
+        """
+        
+    except Exception as e:
+        return f"""
+        <h1>Fix Orphaned Links</h1>
+        <p>Error: {str(e)}</p>
+        <p><a href="/dashboard">Back to Dashboard</a></p>
         """
