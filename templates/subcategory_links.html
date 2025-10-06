@@ -16,38 +16,53 @@
 </div>
 
 <section class="card card-premium animate-slide-in">
-  <h3>Add New Link</h3>
-  <form method="post" action="{{ url_for('add_link_to_subcategory', subcategory_id=subcategory.id) }}" class="link-form" id="subcategory-add-form">
-    <div class="form-group-with-button">
-      <label>
-        URL
-        <input name="url" id="subcategory-url" placeholder="https://example.com" required>
-      </label>
-      <button type="button" class="btn btn-outline btn-detect" onclick="detectLinkInfo('subcategory')">
-        <span class="detect-text">Select</span>
-        <span class="detect-loading" style="display: none;">📡</span>
-      </button>
+  <div class="form-header-with-toggle">
+    <div class="form-header-text">
+      <h3>Add New Link</h3>
+      <p class="text-small">Add links to this subcategory</p>
     </div>
-    <div class="form-group">
-      <label>
-        Link Title
-        <input name="title" id="subcategory-title" placeholder="e.g. Shop Now, View Collection, Documentation" required>
-      </label>
-    </div>
-    <div class="form-group">
-      <label>
-        Description (Optional)
-        <textarea name="description" id="subcategory-description" placeholder="Brief description of this link"></textarea>
-      </label>
-    </div>
-    <input type="hidden" name="image_url" id="subcategory-image-url">
-    <div class="detected-image" id="subcategory-detected-image" style="display: none;">
-      <img src="" alt="Detected image" class="preview-image">
-      <span class="image-label">Auto-detected image</span>
-    </div>
-    <div class="form-actions">
-      <button class="btn btn-primary" type="submit">Add Link</button>
-      <a href="{{ url_for('category_subcategories', category_id=subcategory.categories.id) }}" class="btn btn-outline">Back to Subcategories</a>
+    <button class="add-form-toggle-btn" onclick="toggleAddLinkForm()" id="addLinkToggleBtn">
+      <span class="plus-icon">+</span>
+      <span class="btn-text">Add Link</span>
+    </button>
+  </div>
+  
+  <!-- Collapsible Form (Initially Hidden) -->
+  <div class="collapsible-form-container" id="addLinkForm" style="display: none;">
+    <form method="post" action="{{ url_for('add_link_to_subcategory', subcategory_id=subcategory.id) }}" class="link-form" id="subcategory-add-form">
+      <div class="form-group-with-button">
+        <label>
+          URL
+          <input name="url" id="subcategory-url" placeholder="https://example.com" required>
+        </label>
+        <button type="button" class="btn btn-outline btn-detect" onclick="detectLinkInfo('subcategory')">
+          <span class="detect-text">Select</span>
+          <span class="detect-loading" style="display: none;">📡</span>
+        </button>
+      </div>
+      <div class="form-group">
+        <label>
+          Link Title
+          <input name="title" id="subcategory-title" placeholder="e.g. Shop Now, View Collection, Documentation" required>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>
+          Description (Optional)
+          <textarea name="description" id="subcategory-description" placeholder="Brief description of this link"></textarea>
+        </label>
+      </div>
+      <input type="hidden" name="image_url" id="subcategory-image-url">
+      <div class="detected-image" id="subcategory-detected-image" style="display: none;">
+        <img src="" alt="Detected image" class="preview-image">
+        <span class="image-label">Auto-detected image</span>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Add Link</button>
+        <button type="button" class="btn btn-secondary" onclick="toggleAddLinkForm()">Cancel</button>
+      </div>
+    </form>
+  </div>
     </div>
   </form>
 </section>
@@ -385,5 +400,184 @@ async function detectLinkInfo(formType) {
     detectBtn.querySelector('.detect-loading').style.display = 'none';
   }
 }
+
+// Collapsible form functionality
+function toggleAddLinkForm() {
+  const form = document.getElementById('addLinkForm');
+  const toggleBtn = document.getElementById('addLinkToggleBtn');
+  const plusIcon = toggleBtn.querySelector('.plus-icon');
+  const btnText = toggleBtn.querySelector('.btn-text');
+  
+  if (form.style.display === 'none' || form.style.display === '') {
+    // Show form
+    form.style.display = 'block';
+    plusIcon.textContent = '×';
+    btnText.textContent = 'Cancel';
+    toggleBtn.classList.add('active');
+    
+    // Focus on the first input
+    setTimeout(() => {
+      const firstInput = form.querySelector('input[name="url"]');
+      if (firstInput) firstInput.focus();
+    }, 100);
+  } else {
+    // Hide form
+    form.style.display = 'none';
+    plusIcon.textContent = '+';
+    btnText.textContent = 'Add Link';
+    toggleBtn.classList.remove('active');
+    
+    // Clear form
+    const formElement = form.querySelector('form');
+    if (formElement) formElement.reset();
+    
+    // Clear detected image
+    const detectedImage = document.getElementById('subcategory-detected-image');
+    if (detectedImage) detectedImage.style.display = 'none';
+    document.getElementById('subcategory-image-url').value = '';
+  }
+}
+
+// Initialize form state and handle successful submission
+document.addEventListener('DOMContentLoaded', function() {
+  const addLinkForm = document.getElementById('addLinkForm');
+  const addLinkToggle = document.getElementById('addLinkToggleBtn');
+  
+  // Force initial state - form hidden
+  if (addLinkForm && addLinkToggle) {
+    addLinkForm.style.display = 'none';
+    addLinkToggle.querySelector('.plus-icon').textContent = '+';
+    addLinkToggle.querySelector('.btn-text').textContent = 'Add Link';
+    addLinkToggle.classList.remove('active');
+  }
+  
+  // Check for error messages - if there are errors, show the form
+  const errorMessages = document.querySelectorAll('.alert.alert-danger, .flash-message.danger, .flash-message.error');
+  if (errorMessages.length > 0 && addLinkForm && addLinkToggle) {
+    // Show form if there were validation errors
+    addLinkForm.style.display = 'block';
+    addLinkToggle.querySelector('.plus-icon').textContent = '×';
+    addLinkToggle.querySelector('.btn-text').textContent = 'Cancel';
+    addLinkToggle.classList.add('active');
+  }
+});
 </script>
+
+<style>
+/* Collapsible Form Styles */
+.form-header-with-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-header-text {
+  flex: 1;
+}
+
+.form-header-text h3 {
+  margin: 0 0 0.5rem 0;
+}
+
+.form-header-text p {
+  margin: 0;
+}
+
+.add-form-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.add-form-toggle-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.add-form-toggle-btn.active {
+  background: #dc3545;
+}
+
+.add-form-toggle-btn.active:hover {
+  background: #c82333;
+}
+
+.plus-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.add-form-toggle-btn.active .plus-icon {
+  transform: rotate(45deg);
+}
+
+.collapsible-form-container {
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.collapsible-form-container form {
+  animation: slideDown 0.3s ease;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  margin-top: 1rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-light);
+  color: var(--text-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .form-header-with-toggle {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .add-form-toggle-btn {
+    align-self: flex-start;
+  }
+}
+</style>
 {% endblock %}
