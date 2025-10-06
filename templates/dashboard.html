@@ -55,11 +55,20 @@
     <p style="color: var(--text-secondary); margin-bottom: 1rem;">
       Share this link to let people access all your links in one place:
     </p>
-    <a href="{{ site_base }}{{ url_for('public_profile', username=user.username) }}" 
-       target="_blank" 
-       class="public-link">
-      {{ site_base }}{{ url_for('public_profile', username=user.username) }}
-    </a>
+    <div class="profile-link-container">
+      <a href="{{ site_base }}{{ url_for('public_profile', username=user.username) }}" 
+         target="_blank" 
+         class="public-link"
+         id="profile-url">
+        {{ site_base }}{{ url_for('public_profile', username=user.username) }}
+      </a>
+      <button onclick="copyProfileLink()" class="btn-copy" title="Copy link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+      </button>
+    </div>
   </section>
 </div>
 </div>
@@ -697,6 +706,54 @@ document.addEventListener('click', function(e) {
   right: 1rem;
   top: 1rem;
 }
+
+/* Profile Link Container */
+.profile-link-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--bg-light);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+}
+
+.profile-link-container .public-link {
+  flex: 1;
+  text-decoration: none;
+  color: var(--primary-solid);
+  font-family: monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.profile-link-container .public-link:hover {
+  text-decoration: underline;
+}
+
+.btn-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: var(--primary-solid);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 36px;
+  height: 36px;
+}
+
+.btn-copy:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-copy:active {
+  transform: translateY(0);
+}
 </style>
 
 <script>
@@ -763,5 +820,63 @@ document.addEventListener('DOMContentLoaded', function() {
     observer.observe(categoriesModal, { attributes: true });
   }
 });
+
+// Copy profile link functionality
+function copyProfileLink() {
+  const profileLink = document.getElementById('profile-url');
+  const linkText = profileLink.textContent.trim();
+  
+  // Use the modern clipboard API if available
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(linkText).then(() => {
+      showCopyFeedback();
+    }).catch(() => {
+      fallbackCopyText(linkText);
+    });
+  } else {
+    // Fallback for older browsers
+    fallbackCopyText(linkText);
+  }
+}
+
+function fallbackCopyText(text) {
+  // Create a temporary textarea element
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    showCopyFeedback();
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+function showCopyFeedback() {
+  const copyBtn = document.querySelector('.btn-copy');
+  const originalContent = copyBtn.innerHTML;
+  
+  // Show checkmark
+  copyBtn.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="20,6 9,17 4,12"></polyline>
+    </svg>
+  `;
+  copyBtn.style.background = 'var(--success)';
+  
+  // Reset after 2 seconds
+  setTimeout(() => {
+    copyBtn.innerHTML = originalContent;
+    copyBtn.style.background = 'var(--primary-solid)';
+  }, 2000);
+}
 </script>
 {% endblock %}
