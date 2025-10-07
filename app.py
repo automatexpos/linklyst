@@ -91,7 +91,7 @@ def login_required(f):
             # Check if there was a user_id in session but no active user returned
             # This means the account was deactivated
             if session.get("user_id"):
-                flash("Your account has been deactivated. Please contact support.", "danger")
+                flash("Your account is not active. Please contact support.", "danger")
                 session.pop("user_id", None)
             return redirect(url_for("login", next=request.path))
         return f(*args, **kwargs)
@@ -223,7 +223,8 @@ def register():
     res = supabase.table("users").insert({
         "email": email,
         "username": username,
-        "password_hash": pw_hash
+        "password_hash": pw_hash,
+        "is_active": False
     }).execute()
     if res.data == []:
         flash("Email or username already taken","danger")
@@ -233,7 +234,7 @@ def register():
         "user_id": user_id,
         "display_name": username
     }).execute()
-    flash("Account created. Please log in.","success")
+    flash("Account created successfully! Please wait for the confirmation to use your account.","info")
     return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET","POST"])
@@ -259,7 +260,7 @@ def login():
     
     # Check if account is active
     if not user.get("is_active", True):
-        flash("Your account has been deactivated. Please contact support.", "danger")
+        flash("Your account is not active. Please contact support.", "danger")
         return redirect(url_for("login"))
     
     session["user_id"] = user["id"]
@@ -371,7 +372,7 @@ def google_callback():
             # User exists with Google ID, check if account is active
             user = existing_user.data[0]
             if not user.get("is_active", True):
-                flash("Your account has been deactivated. Please contact support.", "danger")
+                flash("Your account is not active. Please contact support.", "danger")
                 return redirect(url_for("login"))
             
             session["user_id"] = user["id"]
@@ -386,7 +387,7 @@ def google_callback():
             # User exists with email but no Google ID, check if account is active
             user = email_user.data[0]
             if not user.get("is_active", True):
-                flash("Your account has been deactivated. Please contact support.", "danger")
+                flash("Your account is not active. Please contact support.", "danger")
                 return redirect(url_for("login"))
             
             # Link the Google account
@@ -417,7 +418,8 @@ def google_callback():
             "email": email,
             "username": username,
             "google_id": google_id,
-            "password_hash": None  # No password for OAuth users
+            "password_hash": None,  # No password for OAuth users
+            "is_active": False
         }).execute()
         
         if not new_user.data:
@@ -432,10 +434,9 @@ def google_callback():
             "display_name": name or username
         }).execute()
         
-        session["user_id"] = user_id
         session.pop("oauth_state", None)
-        flash(f"Account created successfully! Welcome, {name}!", "success")
-        return redirect(url_for("dashboard"))
+        flash(f"Account created successfully! Please wait for the confirmation to use your account.", "info")
+        return redirect(url_for("login"))
         
     except Exception as e:
         import traceback
@@ -1469,3 +1470,60 @@ def fix_orphaned_links():
         <p>Error: {str(e)}</p>
         <p><a href="/dashboard">Back to Dashboard</a></p>
         """
+
+# --- Support Request System ---
+@app.route("/api/submit-support-request", methods=["POST"])
+def submit_support_request():
+    """Handle support request form submissions"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip().lower()
+        request_text = data.get('request', '').strip()
+        
+        if not name or not email or not request_text:
+            return jsonify({"success": False, "error": "All fields are required"}), 400
+        
+        # Basic email validation
+        import re
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            return jsonify({"success": False, "error": "Please enter a valid email address"}), 400
+        
+        # Get current user if logged in
+        current_user_obj = current_user()
+        user_id = current_user_obj["id"] if current_user_obj else None
+        
+        # If user is logged in but form has different email, show warning but allow submission
+        logged_in_email = current_user_obj["email"] if current_user_obj else None
+        
+        # Insert support request into database
+        request_data = {
+            "user_id": user_id,
+            "name": name,
+            "email": email,
+            "request": request_text,
+            "status": "open",
+            "priority": "normal"
+        }
+        
+        result = supabase.table("linklyst_requests").insert(request_data).execute()
+        
+        if result.data:
+            # Log successful submission
+            print(f"Support request submitted - ID: {result.data[0]['id']}, Email: {email}, User ID: {user_id}")
+            
+            return jsonify({
+                "success": True, 
+                "message": "Your request has been submitted successfully. You will be contacted by our support team soon.",
+                "request_id": result.data[0]['id']
+            })
+        else:
+            return jsonify({"success": False, "error": "Failed to submit request. Please try again."}), 500
+            
+    except Exception as e:
+        print(f"Error submitting support request: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": "An unexpected error occurred. Please try again."}), 500

@@ -63,6 +63,161 @@
 
   <footer class="container footer glass-effect">
     <small class="gradient-text">Built with ❤️. A project of AutomateXpo</small>
+    <div class="footer-actions">
+      <button class="contact-btn" onclick="openSupportModal()">Submit a request</button>
+    </div>
   </footer>
+
+  <!-- Support Request Modal -->
+  <div id="support-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-backdrop" onclick="closeSupportModal()"></div>
+    <div class="modal-content support-modal">
+      <div class="modal-header">
+        <h3>Submit a Support Request</h3>
+        <button class="modal-close" onclick="closeSupportModal()">&times;</button>
+      </div>
+      <form id="support-form" onsubmit="submitSupportRequest(event)">
+        <div class="form-group">
+          <label for="support-name">Name *</label>
+          <input type="text" id="support-name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="support-email">Email *</label>
+          <input type="email" id="support-email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="support-request">Request *</label>
+          <textarea id="support-request" name="request" rows="5" placeholder="Please describe your issue or request..." required></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeSupportModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Support Modal Functions
+    function openSupportModal() {
+      const modal = document.getElementById('support-modal');
+      modal.style.display = 'flex';
+      
+      // Auto-fill user details if logged in
+      {% if user %}
+        document.getElementById('support-name').value = '{{ user.username }}';
+        document.getElementById('support-email').value = '{{ user.email }}';
+        // Make fields readonly for logged-in users
+        document.getElementById('support-name').setAttribute('readonly', true);
+        document.getElementById('support-email').setAttribute('readonly', true);
+        // Focus on request field for logged-in users
+        setTimeout(() => {
+          document.getElementById('support-request').focus();
+        }, 100);
+      {% else %}
+        // Clear fields for anonymous users
+        document.getElementById('support-name').value = '';
+        document.getElementById('support-email').value = '';
+        document.getElementById('support-request').value = '';
+        // Remove readonly attributes
+        document.getElementById('support-name').removeAttribute('readonly');
+        document.getElementById('support-email').removeAttribute('readonly');
+        // Focus on name field for anonymous users
+        setTimeout(() => {
+          document.getElementById('support-name').focus();
+        }, 100);
+      {% endif %}
+    }
+
+    function closeSupportModal() {
+      const modal = document.getElementById('support-modal');
+      modal.style.display = 'none';
+      // Reset form
+      document.getElementById('support-form').reset();
+    }
+
+    async function submitSupportRequest(event) {
+      event.preventDefault();
+      
+      const form = document.getElementById('support-form');
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      
+      // Disable submit button and show loading
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      
+      try {
+        const formData = new FormData(form);
+        const data = {
+          name: formData.get('name'),
+          email: formData.get('email'),
+          request: formData.get('request')
+        };
+
+        const response = await fetch('/api/submit-support-request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Show success message
+          showSupportSuccess(result.message);
+        } else {
+          // Show error message
+          alert('Error: ' + (result.error || 'Failed to submit request'));
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      } catch (error) {
+        console.error('Error submitting support request:', error);
+        alert('An error occurred. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    }
+
+    function showSupportSuccess(message) {
+      const modal = document.querySelector('.support-modal');
+      modal.innerHTML = `
+        <div class="support-success">
+          <div class="success-icon">✅</div>
+          <h3>Request Submitted Successfully!</h3>
+          <p>${message}</p>
+          <button class="btn btn-primary" onclick="closeSupportModal()" style="margin-top: 1.5rem;">Close</button>
+        </div>
+      `;
+      
+      // Auto-close modal after 5 seconds
+      setTimeout(() => {
+        closeSupportModal();
+        // Reset modal content for next use
+        location.reload();
+      }, 5000);
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+      const modal = document.getElementById('support-modal');
+      if (event.target === modal) {
+        closeSupportModal();
+      }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        const modal = document.getElementById('support-modal');
+        if (modal.style.display === 'flex') {
+          closeSupportModal();
+        }
+      }
+    });
+  </script>
 </body>
 </html>
