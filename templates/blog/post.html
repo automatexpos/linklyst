@@ -20,6 +20,9 @@
 <script>
 // Force blog styling on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // Add blog-page class to body
+    document.body.classList.add('blog-page');
+    
     // Force body background override
     document.body.style.setProperty('background', '#fafafa', 'important');
     document.body.style.setProperty('background-image', 'none', 'important');
@@ -28,6 +31,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Also force on documentElement (html)
     document.documentElement.style.setProperty('background', '#fafafa', 'important');
     document.documentElement.style.setProperty('background-image', 'none', 'important');
+    
+    // Force the main container background
+    const mainContainer = document.querySelector('main.container');
+    if (mainContainer) {
+        mainContainer.style.setProperty('background', '#fafafa', 'important');
+        mainContainer.style.setProperty('background-image', 'none', 'important');
+    }
     
     console.log('Blog styling forced via JavaScript');
 });
