@@ -291,24 +291,6 @@ def index():
     # Show public marketing homepage
     return render_template("index.html")
 
-@app.route("/health")
-def health_check():
-    """Health check endpoint for debugging deployment"""
-    try:
-        # Test basic app functionality
-        import os
-        return {
-            "status": "healthy",
-            "flask_secret_set": bool(os.getenv("FLASK_SECRET_KEY")),
-            "supabase_url_set": bool(os.getenv("SUPABASE_URL")),
-            "supabase_key_set": bool(os.getenv("SUPABASE_KEY")),
-            "site_base": os.getenv("SITE_BASE", "not_set"),
-            "python_version": os.sys.version,
-            "working_directory": os.getcwd()
-        }
-    except Exception as e:
-        return {"status": "error", "error": str(e)}, 500
-
 # --- Auth ---
 @app.route("/register", methods=["GET","POST"])
 def register():
@@ -1258,8 +1240,20 @@ def api_subcategory_links(subcategory_id):
 # --- Health Check & Debugging APIs ---
 @app.route("/api/health", methods=["GET"])
 def health_check():
-    """Simple health check endpoint"""
-    return jsonify({"status": "healthy", "timestamp": str(datetime.now())})
+    """Health check endpoint with debugging info"""
+    try:
+        import os
+        return jsonify({
+            "status": "healthy",
+            "timestamp": str(datetime.now()),
+            "flask_secret_set": bool(os.getenv("FLASK_SECRET_KEY")),
+            "supabase_url_set": bool(os.getenv("SUPABASE_URL")),
+            "supabase_key_set": bool(os.getenv("SUPABASE_KEY")),
+            "site_base": os.getenv("SITE_BASE", "not_set"),
+            "environment": "production" if os.getenv("VERCEL") else "development"
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 @app.route("/api/test-dependencies", methods=["GET"])
 def test_dependencies():
