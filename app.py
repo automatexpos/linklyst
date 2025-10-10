@@ -1647,6 +1647,27 @@ def static_files(filename):
         print(f"DEBUG: Static file not found: {filename}")
         abort(404)
 
+@app.route("/static/blog.css")
+def serve_blog_css():
+    """Serve blog.css with anti-cache headers for custom domain"""
+    from flask import send_from_directory, make_response
+    import os
+    
+    # Check if the CSS file exists
+    css_path = os.path.join(app.static_folder, 'blog.css')
+    if not os.path.exists(css_path):
+        abort(404)
+    
+    # Create response with anti-cache headers
+    response = make_response(send_from_directory(app.static_folder, 'blog.css'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['Content-Type'] = 'text/css'
+    
+    print(f"Serving blog.css for domain: {request.host}")
+    return response
+
 @app.route("/debug/static")
 def debug_static():
     """Debug route to check static files"""
@@ -1666,6 +1687,51 @@ def debug_static():
     {''.join([f'<li><a href="/static/{f}" target="_blank">{f}</a></li>' for f in static_files])}
     </ul>
     <p><a href="/blog">Test Blog</a></p>
+    """
+
+@app.route("/debug/domain")
+def debug_domain():
+    """Debug route to check domain-specific issues"""
+    return f"""
+    <h1>Domain Debug Information</h1>
+    <p><strong>Request URL:</strong> {request.url}</p>
+    <p><strong>Host:</strong> {request.host}</p>
+    <p><strong>Base URL:</strong> {request.base_url}</p>
+    <p><strong>URL Root:</strong> {request.url_root}</p>
+    <p><strong>Environment:</strong> {"Vercel" if os.getenv("VERCEL") else "Local"}</p>
+    <p><strong>Headers:</strong></p>
+    <ul>
+    {''.join([f'<li><strong>{k}:</strong> {v}</li>' for k, v in request.headers])}
+    </ul>
+    
+    <h3>Static File Tests:</h3>
+    <p><a href="/static/blog.css" target="_blank">Test blog.css direct link</a></p>
+    <p><a href="/static/styles.css" target="_blank">Test styles.css direct link</a></p>
+    
+    <h3>Blog Tests:</h3>
+    <p><a href="/blog" target="_blank">Test Blog Page</a></p>
+    
+    <script>
+    // Test CSS loading via JavaScript
+    function testCSSLoading() {{
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/static/blog.css?t=' + Date.now();
+        link.onload = function() {{
+            document.getElementById('css-test').innerHTML = '✅ CSS loads successfully';
+            document.getElementById('css-test').style.color = 'green';
+        }};
+        link.onerror = function() {{
+            document.getElementById('css-test').innerHTML = '❌ CSS failed to load';
+            document.getElementById('css-test').style.color = 'red';
+        }};
+        document.head.appendChild(link);
+    }}
+    
+    window.onload = testCSSLoading;
+    </script>
+    
+    <p id="css-test">🔄 Testing CSS loading...</p>
     """
 
 # --- SEO Routes ---

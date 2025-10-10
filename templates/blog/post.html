@@ -16,7 +16,7 @@
 <meta property="og:url" content="{{ request.url_root }}blog/{{ post.slug }}">
 <meta property="og:image" content="{{ post.featured_image or url_for('static', filename='images/og-image.svg') }}">
 
-<link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}?v={{ range(1, 10000) | random }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}?v={{ range(100000, 999999) | random }}&h={{ request.host | replace('.', '-') }}" />
 <script>
 // Force blog styling on page load
 document.addEventListener('DOMContentLoaded', function() {

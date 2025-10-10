@@ -7,7 +7,7 @@
 {% block canonical %}{{ request.url_root }}blog{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}?v={{ range(1, 10000) | random }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}?v={{ range(100000, 999999) | random }}&h={{ request.host | replace('.', '-') }}" />
 <script>
 // Force blog styling on page load
 document.addEventListener('DOMContentLoaded', function() {
