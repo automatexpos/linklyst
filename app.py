@@ -1626,6 +1626,48 @@ def submit_support_request():
         traceback.print_exc()
         return jsonify({"success": False, "error": "An unexpected error occurred. Please try again."}), 500
 
+# --- Static File Debug Route ---
+@app.route("/static/<path:filename>")
+def static_files(filename):
+    """Explicitly handle static files for Vercel deployment"""
+    from flask import send_from_directory
+    import os
+    
+    # Debug: Check if file exists
+    file_path = os.path.join(app.static_folder, filename)
+    print(f"DEBUG: Requesting static file: {filename}")
+    print(f"DEBUG: Full path: {file_path}")
+    print(f"DEBUG: File exists: {os.path.exists(file_path)}")
+    print(f"DEBUG: Static folder: {app.static_folder}")
+    
+    if os.path.exists(file_path):
+        return send_from_directory(app.static_folder, filename)
+    else:
+        from flask import abort
+        print(f"DEBUG: Static file not found: {filename}")
+        abort(404)
+
+@app.route("/debug/static")
+def debug_static():
+    """Debug route to check static files"""
+    import os
+    static_files = []
+    
+    for root, dirs, files in os.walk(app.static_folder):
+        for file in files:
+            rel_path = os.path.relpath(os.path.join(root, file), app.static_folder)
+            static_files.append(rel_path)
+    
+    return f"""
+    <h1>Static Files Debug</h1>
+    <p><strong>Static folder:</strong> {app.static_folder}</p>
+    <p><strong>Files found:</strong></p>
+    <ul>
+    {''.join([f'<li><a href="/static/{f}" target="_blank">{f}</a></li>' for f in static_files])}
+    </ul>
+    <p><a href="/blog">Test Blog</a></p>
+    """
+
 # --- SEO Routes ---
 @app.route("/robots.txt")
 def robots_txt():
