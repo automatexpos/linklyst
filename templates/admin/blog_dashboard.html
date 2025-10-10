@@ -3,6 +3,16 @@
 {% block title %}Blog Dashboard - Admin{% endblock %}
 
 {% block content %}
+<!-- Admin Navigation -->
+<div style="background: #f8f9ff; padding: 15px 20px; margin-bottom: 30px; border-bottom: 1px solid #e1e5e9;">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; gap: 20px; align-items: center;">
+        <a href="{{ url_for('dashboard') }}" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Dashboard</a>
+        <span style="color: #999;">|</span>
+        <a href="{{ url_for('admin_blog_posts') }}" style="color: #667eea; text-decoration: none; font-weight: 600;">📝 Manage Posts</a>
+        <a href="{{ url_for('admin_upgrade_requests') }}" style="color: #667eea; text-decoration: none; font-weight: 600;">🔧 Upgrade Requests</a>
+    </div>
+</div>
+
 <div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
     <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 30px;">
         <h1>Blog Dashboard</h1>

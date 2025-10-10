@@ -11,6 +11,7 @@
 {% if user and user.email in admin_emails %}
 <div class="admin-panel-link">
     <a href="{{ url_for('admin_upgrade_requests') }}" class="btn-admin">🔧 Admin Panel - Upgrade Requests</a>
+    <a href="{{ url_for('admin_blog_posts') }}" class="btn-admin">📝 Admin Panel - Blog Management</a>
 </div>
 {% endif %}
 

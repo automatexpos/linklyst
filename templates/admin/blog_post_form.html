@@ -9,6 +9,16 @@
 {% endblock %}
 
 {% block content %}
+<!-- Admin Navigation -->
+<div style="background: #f8f9ff; padding: 15px 20px; margin-bottom: 30px; border-bottom: 1px solid #e1e5e9;">
+    <div style="max-width: 1000px; margin: 0 auto; display: flex; gap: 20px; align-items: center;">
+        <a href="{{ url_for('admin_blog_posts') }}" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Posts</a>
+        <span style="color: #999;">|</span>
+        <a href="{{ url_for('dashboard') }}" style="color: #667eea; text-decoration: none; font-weight: 600;">🏠 Dashboard</a>
+        <a href="{{ url_for('admin_blog_dashboard') }}" style="color: #667eea; text-decoration: none; font-weight: 600;">📊 Blog Dashboard</a>
+    </div>
+</div>
+
 <div style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
     <div style="margin-bottom: 30px;">
         <h1>{% if mode == 'new' %}Create New Blog Post{% else %}Edit Blog Post{% endif %}</h1>
