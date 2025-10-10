@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Blog Dashboard - Admin{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 30px;">
+        <h1>Blog Dashboard</h1>
+        <a href="/admin/blog/post/new" style="background: #667eea; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Create New Post
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
+        <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">Total Posts</h3>
+            <div style="font-size: 2rem; font-weight: bold; color: #667eea;">{{ total_posts }}</div>
+        </div>
+        
+        <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">Published</h3>
+            <div style="font-size: 2rem; font-weight: bold; color: #10b981;">{{ published_count }}</div>
+        </div>
+        
+        <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">Drafts</h3>
+            <div style="font-size: 2rem; font-weight: bold; color: #f59e0b;">{{ draft_count }}</div>
+        </div>
+        
+        <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">Categories</h3>
+            <div style="font-size: 2rem; font-weight: bold; color: #8b5cf6;">{{ categories|length }}</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 40px;">
+        <h3 style="margin: 0 0 20px 0;">Quick Actions</h3>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <a href="/admin/blog/posts" style="background: #f3f4f6; color: #333; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
+                Manage All Posts
+            </a>
+            <a href="/admin/blog/posts?status=published" style="background: #d1fae5; color: #065f46; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
+                View Published
+            </a>
+            <a href="/admin/blog/posts?status=draft" style="background: #fef3c7; color: #92400e; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
+                View Drafts
+            </a>
+            <a href="/blog" target="_blank" style="background: #dbeafe; color: #1e40af; padding: 10px 20px; border-radius: 6px; text-decoration: none;">
+                View Public Blog
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Posts -->
+    {% if recent_posts %}
+    <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h3 style="margin: 0 0 20px 0;">Recent Posts</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #f3f4f6;">
+                        <th style="text-align: left; padding: 12px 8px; color: #666;">Title</th>
+                        <th style="text-align: left; padding: 12px 8px; color: #666;">Status</th>
+                        <th style="text-align: left; padding: 12px 8px; color: #666;">Category</th>
+                        <th style="text-align: left; padding: 12px 8px; color: #666;">Created</th>
+                        <th style="text-align: left; padding: 12px 8px; color: #666;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in recent_posts %}
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 12px 8px;">
+                            <div style="font-weight: 600;">{{ post.title }}</div>
+                            <div style="font-size: 0.9rem; color: #666;">{{ post.excerpt[:50] }}...</div>
+                        </td>
+                        <td style="padding: 12px 8px;">
+                            {% if post.status == 'published' %}
+                            <span style="background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Published</span>
+                            {% elif post.status == 'draft' %}
+                            <span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Draft</span>
+                            {% else %}
+                            <span style="background: #f3f4f6; color: #666; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">{{ post.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px 8px; color: #666;">
+                            <!-- Category name would go here -->
+                            -
+                        </td>
+                        <td style="padding: 12px 8px; color: #666; font-size: 0.9rem;">
+                            {{ post.created_at[:10] }}
+                        </td>
+                        <td style="padding: 12px 8px;">
+                            <div style="display: flex; gap: 8px;">
+                                <a href="/admin/blog/post/{{ post.id }}/edit" style="color: #667eea; text-decoration: none; font-size: 0.9rem;">Edit</a>
+                                {% if post.status == 'published' %}
+                                <a href="/blog/{{ post.slug }}" target="_blank" style="color: #10b981; text-decoration: none; font-size: 0.9rem;">View</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Categories Overview -->
+    {% if categories %}
+    <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 40px;">
+        <h3 style="margin: 0 0 20px 0;">Blog Categories</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            {% for category in categories %}
+            <div style="padding: 15px; border: 1px solid #e5e7eb; border-radius: 6px;">
+                <div style="font-weight: 600; margin-bottom: 5px;">{{ category.name }}</div>
+                <div style="font-size: 0.9rem; color: #666;">{{ category.description[:50] }}...</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

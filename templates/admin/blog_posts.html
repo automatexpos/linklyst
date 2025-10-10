@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Blog Posts - Admin{% endblock %}
+
+{% block content %}
+<div style="max-width: 1400px; margin: 0 auto; padding: 40px 20px;">
+    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h1>Manage Blog Posts</h1>
+            <p style="color: #666; margin: 5px 0 0 0;">{{ total_posts }} total posts</p>
+        </div>
+        <a href="/admin/blog/post/new" style="background: #667eea; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Create New Post
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <span style="font-weight: 600; color: #333;">Filter by status:</span>
+            <a href="/admin/blog/posts" style="padding: 8px 16px; border-radius: 4px; text-decoration: none; {% if status_filter == 'all' %}background: #667eea; color: white;{% else %}background: #f3f4f6; color: #333;{% endif %}">
+                All ({{ total_posts }})
+            </a>
+            <a href="/admin/blog/posts?status=published" style="padding: 8px 16px; border-radius: 4px; text-decoration: none; {% if status_filter == 'published' %}background: #10b981; color: white;{% else %}background: #f3f4f6; color: #333;{% endif %}">
+                Published
+            </a>
+            <a href="/admin/blog/posts?status=draft" style="padding: 8px 16px; border-radius: 4px; text-decoration: none; {% if status_filter == 'draft' %}background: #f59e0b; color: white;{% else %}background: #f3f4f6; color: #333;{% endif %}">
+                Drafts
+            </a>
+            <a href="/admin/blog/posts?status=archived" style="padding: 8px 16px; border-radius: 4px; text-decoration: none; {% if status_filter == 'archived' %}background: #6b7280; color: white;{% else %}background: #f3f4f6; color: #333;{% endif %}">
+                Archived
+            </a>
+        </div>
+    </div>
+
+    <!-- Posts Table -->
+    {% if posts %}
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background: #f9fafb;">
+                    <tr>
+                        <th style="text-align: left; padding: 15px; color: #374151; font-weight: 600;">Title</th>
+                        <th style="text-align: left; padding: 15px; color: #374151; font-weight: 600;">Status</th>
+                        <th style="text-align: left; padding: 15px; color: #374151; font-weight: 600;">Category</th>
+                        <th style="text-align: left; padding: 15px; color: #374151; font-weight: 600;">Author</th>
+                        <th style="text-align: left; padding: 15px; color: #374151; font-weight: 600;">Views</th>
+                        <th style="text-align: left; padding: 15px; color: #374151; font-weight: 600;">Created</th>
+                        <th style="text-align: left; padding: 15px; color: #374151; font-weight: 600;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for post in posts %}
+                    <tr style="border-bottom: 1px solid #f3f4f6; {% if loop.index % 2 == 0 %}background: #fafbfc;{% endif %}">
+                        <td style="padding: 15px; max-width: 300px;">
+                            <div style="font-weight: 600; margin-bottom: 4px;">{{ post.title }}</div>
+                            <div style="font-size: 0.9rem; color: #6b7280; line-height: 1.4;">
+                                {{ post.excerpt[:80] }}{% if post.excerpt|length > 80 %}...{% endif %}
+                            </div>
+                            {% if post.slug %}
+                            <div style="font-size: 0.8rem; color: #9ca3af; margin-top: 4px;">
+                                Slug: {{ post.slug }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px;">
+                            {% if post.status == 'published' %}
+                            <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">
+                                Published
+                            </span>
+                            {% elif post.status == 'draft' %}
+                            <span style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">
+                                Draft
+                            </span>
+                            {% elif post.status == 'archived' %}
+                            <span style="background: #f3f4f6; color: #6b7280; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">
+                                Archived
+                            </span>
+                            {% else %}
+                            <span style="background: #e5e7eb; color: #374151; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">
+                                {{ post.status }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px; color: #6b7280;">
+                            {% if post.blog_categories %}
+                            {{ post.blog_categories[0].name }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px; color: #6b7280;">
+                            {% if post.users %}
+                            {{ post.users[0].username }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td style="padding: 15px; color: #6b7280;">
+                            {{ post.views or 0 }}
+                        </td>
+                        <td style="padding: 15px; color: #6b7280; font-size: 0.9rem;">
+                            {{ post.created_at[:10] }}
+                            <div style="font-size: 0.8rem; color: #9ca3af;">
+                                {{ post.created_at[11:16] }}
+                            </div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="display: flex; flex-direction: column; gap: 8px; min-width: 100px;">
+                                <a href="/admin/blog/post/{{ post.id }}/edit" 
+                                   style="color: #667eea; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                                    ✏️ Edit
+                                </a>
+                                {% if post.status == 'published' %}
+                                <a href="/blog/{{ post.slug }}" target="_blank"
+                                   style="color: #10b981; text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                                    👁️ View
+                                </a>
+                                {% endif %}
+                                <form method="POST" action="/admin/blog/post/{{ post.id }}/delete" 
+                                      style="margin: 0;" 
+                                      onsubmit="return confirm('Are you sure you want to delete this post?')">
+                                    <button type="submit" 
+                                            style="background: none; border: none; color: #ef4444; font-size: 0.9rem; font-weight: 500; cursor: pointer; padding: 0; text-align: left;">
+                                        🗑️ Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if has_prev or has_next %}
+    <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 30px;">
+        {% if has_prev %}
+        <a href="/admin/blog/posts?page={{ prev_num }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}" 
+           style="background: #f3f4f6; color: #374151; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+            ← Previous
+        </a>
+        {% endif %}
+        
+        <span style="color: #6b7280; font-weight: 500;">
+            Page {{ page }}
+        </span>
+        
+        {% if has_next %}
+        <a href="/admin/blog/posts?page={{ next_num }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}" 
+           style="background: #667eea; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 500;">
+            Next →
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div style="background: white; padding: 60px; text-align: center; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <div style="font-size: 3rem; margin-bottom: 20px;">📝</div>
+        <h3 style="color: #6b7280; margin-bottom: 15px;">No blog posts yet</h3>
+        <p style="color: #9ca3af; margin-bottom: 25px;">Get started by creating your first blog post to boost your SEO rankings.</p>
+        <a href="/admin/blog/post/new" 
+           style="background: #667eea; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Create Your First Post
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div style="margin-top: 40px; padding: 20px; background: #f9fafb; border-radius: 8px;">
+        <h4 style="margin: 0 0 15px 0; color: #374151;">Quick Actions</h4>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <a href="/admin/blog" style="color: #667eea; text-decoration: none;">← Back to Dashboard</a>
+            <a href="/blog" target="_blank" style="color: #10b981; text-decoration: none;">View Public Blog</a>
+            <a href="/blog/feed.xml" target="_blank" style="color: #f59e0b; text-decoration: none;">RSS Feed</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block title %}{% if mode == 'new' %}Create New Blog Post{% else %}Edit: {{ post.title }}{% endif %} - Admin{% endblock %}
+
+{% block head %}
+<!-- Rich text editor -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+    <div style="margin-bottom: 30px;">
+        <h1>{% if mode == 'new' %}Create New Blog Post{% else %}Edit Blog Post{% endif %}</h1>
+        <p style="color: #666; margin: 5px 0 0 0;">
+            {% if mode == 'new' %}
+            Create SEO-optimized content to boost your search rankings
+            {% else %}
+            Last updated: {{ post.updated_at[:19] }}
+            {% endif %}
+        </p>
+    </div>
+
+    <form method="POST" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <!-- Title -->
+        <div style="margin-bottom: 25px;">
+            <label for="title" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Title <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" 
+                   id="title" 
+                   name="title" 
+                   value="{{ post.title if post else '' }}"
+                   required
+                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                   placeholder="Enter an SEO-friendly title...">
+            <small style="color: #6b7280; font-size: 0.9rem;">This will be your main headline and used for SEO</small>
+        </div>
+
+        <!-- Excerpt -->
+        <div style="margin-bottom: 25px;">
+            <label for="excerpt" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Excerpt
+            </label>
+            <textarea id="excerpt" 
+                      name="excerpt" 
+                      rows="3"
+                      style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; resize: vertical;"
+                      placeholder="Brief summary for previews and social sharing...">{{ post.excerpt if post else '' }}</textarea>
+            <small style="color: #6b7280; font-size: 0.9rem;">Used for article previews and social media descriptions</small>
+        </div>
+
+        <!-- Category -->
+        <div style="margin-bottom: 25px;">
+            <label for="category_id" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Category <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="category_id" 
+                    name="category_id" 
+                    required
+                    style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+                <option value="">Select a category...</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" 
+                        {% if post and post.category_id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Tags -->
+        <div style="margin-bottom: 25px;">
+            <label for="tags" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Tags
+            </label>
+            <input type="text" 
+                   id="tags" 
+                   name="tags" 
+                   value="{% if current_tags %}{{ current_tags | join(', ') }}{% endif %}"
+                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                   placeholder="SEO, Link-in-Bio, Social Media (comma separated)">
+            <small style="color: #6b7280; font-size: 0.9rem;">Separate tags with commas. Used for SEO and content organization</small>
+        </div>
+
+        <!-- Content -->
+        <div style="margin-bottom: 25px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Content <span style="color: #ef4444;">*</span>
+            </label>
+            <div id="editor" style="height: 400px; border: 1px solid #d1d5db; border-radius: 6px; background: white;"></div>
+            <textarea id="content" name="content" style="display: none;" required>{{ post.content if post else '' }}</textarea>
+            <small style="color: #6b7280; font-size: 0.9rem;">Write comprehensive, valuable content for your readers</small>
+        </div>
+
+        <!-- SEO Section -->
+        <div style="margin-bottom: 25px; padding: 20px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+            <h3 style="margin: 0 0 15px 0; color: #374151; font-size: 1.1rem;">SEO Settings</h3>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="meta_description" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                    Meta Description
+                </label>
+                <textarea id="meta_description" 
+                          name="meta_description" 
+                          rows="2"
+                          maxlength="160"
+                          style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; resize: vertical;"
+                          placeholder="SEO description for search engines (max 160 characters)...">{{ post.meta_description if post else '' }}</textarea>
+                <small style="color: #6b7280; font-size: 0.9rem;">This appears in search results. Keep it under 160 characters.</small>
+            </div>
+
+            <div>
+                <label for="meta_keywords" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                    Meta Keywords
+                </label>
+                <input type="text" 
+                       id="meta_keywords" 
+                       name="meta_keywords" 
+                       value="{{ post.meta_keywords if post else '' }}"
+                       style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                       placeholder="link-in-bio, social media, linktree alternative">
+                <small style="color: #6b7280; font-size: 0.9rem;">Target keywords for search engines (comma separated)</small>
+            </div>
+        </div>
+
+        <!-- Featured Image -->
+        <div style="margin-bottom: 25px;">
+            <label for="featured_image" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Featured Image URL
+            </label>
+            <input type="url" 
+                   id="featured_image" 
+                   name="featured_image" 
+                   value="{{ post.featured_image if post else '' }}"
+                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                   placeholder="https://example.com/image.jpg">
+            
+            <div style="margin-top: 10px;">
+                <label for="featured_image_alt" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                    Image Alt Text
+                </label>
+                <input type="text" 
+                       id="featured_image_alt" 
+                       name="featured_image_alt" 
+                       value="{{ post.featured_image_alt if post else '' }}"
+                       style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                       placeholder="Descriptive text for accessibility and SEO">
+            </div>
+            <small style="color: #6b7280; font-size: 0.9rem;">Recommended: 1200x630px for optimal social media sharing</small>
+        </div>
+
+        <!-- Status -->
+        <div style="margin-bottom: 30px;">
+            <label for="status" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Status
+            </label>
+            <select id="status" 
+                    name="status" 
+                    style="width: auto; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+                <option value="draft" {% if not post or post.status == 'draft' %}selected{% endif %}>Draft</option>
+                <option value="published" {% if post and post.status == 'published' %}selected{% endif %}>Published</option>
+                <option value="archived" {% if post and post.status == 'archived' %}selected{% endif %}>Archived</option>
+            </select>
+            <small style="color: #6b7280; font-size: 0.9rem;">Only published posts appear on your blog</small>
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 15px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <button type="submit" 
+                    style="background: #667eea; color: white; padding: 14px 28px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem;">
+                {% if mode == 'new' %}Create Post{% else %}Update Post{% endif %}
+            </button>
+            
+            <a href="/admin/blog/posts" 
+               style="background: #f3f4f6; color: #374151; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 1rem;">
+                Cancel
+            </a>
+            
+            {% if mode == 'edit' and post.status == 'published' %}
+            <a href="/blog/{{ post.slug }}" 
+               target="_blank"
+               style="background: #10b981; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 1rem;">
+                View Post
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<script>
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Quill editor
+    var quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['blockquote', 'code-block'],
+                ['link', 'image'],
+                ['clean']
+            ]
+        },
+        placeholder: 'Write your blog post content here...'
+    });
+    
+    // Load existing content if editing
+    var existingContent = document.querySelector('#content').value;
+    if (existingContent && existingContent.trim()) {
+        quill.root.innerHTML = existingContent;
+    }
+    
+    // Update hidden textarea when form is submitted
+    document.querySelector('form').onsubmit = function() {
+        document.querySelector('#content').value = quill.root.innerHTML;
+        return true;
+    };
+    
+    // Also update on any change to prevent data loss
+    quill.on('text-change', function() {
+        document.querySelector('#content').value = quill.root.innerHTML;
+        
+        // Auto-generate excerpt from content
+        var text = quill.getText();
+        if (text.length > 10 && !document.querySelector('#excerpt').value) {
+            var autoExcerpt = text.substring(0, 200).trim();
+            if (autoExcerpt.length >= 200) {
+                autoExcerpt = autoExcerpt.substring(0, autoExcerpt.lastIndexOf(' ')) + '...';
+            }
+            document.querySelector('#excerpt').placeholder = 'Auto: ' + autoExcerpt;
+        }
+    });
+    
+    // Auto-generate meta description from excerpt
+    document.querySelector('#excerpt').addEventListener('input', function() {
+        var excerpt = this.value;
+        var metaDesc = document.querySelector('#meta_description');
+        if (excerpt && !metaDesc.value) {
+            metaDesc.value = excerpt.length > 160 ? excerpt.substring(0, 157) + '...' : excerpt;
+        }
+    });
+
+    // Character counter for meta description
+    document.querySelector('#meta_description').addEventListener('input', function() {
+        var length = this.value.length;
+        var counter = this.nextElementSibling;
+        counter.innerHTML = 'This appears in search results. Keep it under 160 characters. (' + length + '/160)';
+        counter.style.color = length > 160 ? '#ef4444' : '#6b7280';
+    });
+});
+
+</script>
+{% endblock %}

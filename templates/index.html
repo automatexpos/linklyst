@@ -340,6 +340,100 @@
             }
         }
         
+        /* Blog Preview Section */
+        .blog-preview-section {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            padding: 100px 20px;
+            text-align: center;
+        }
+        
+        .blog-preview-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .blog-preview-section h2 {
+            font-size: 3rem;
+            color: #1a1a2e;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .blog-subtitle {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 60px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .blog-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        
+        .blog-preview-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .blog-preview-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+        
+        .blog-icon {
+            font-size: 3rem;
+            margin-bottom: 25px;
+            display: block;
+        }
+        
+        .blog-preview-card h3 {
+            font-size: 1.5rem;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .blog-preview-card p {
+            color: #555;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+        
+        .blog-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 36px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .blog-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        
+        .blog-note {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
         /* Pricing Section Styles */
         .pricing-section {
             background: #f8f9fa;
@@ -596,6 +690,39 @@
                 <div class="feature-icon">�</div>
                 <h3>7-Day Free Trial</h3>
                 <p>Try all features risk-free for 7 days. No credit card required. Upgrade anytime to keep your page active.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Blog Preview Section -->
+    <section class="blog-preview-section">
+        <div class="blog-preview-container">
+            <h2>Learn from the Experts</h2>
+            <p class="blog-subtitle">Discover tips, strategies, and insights to maximize your link-in-bio success</p>
+            
+            <div class="blog-preview-grid">
+                <div class="blog-preview-card">
+                    <div class="blog-icon">📊</div>
+                    <h3>Analytics & Insights</h3>
+                    <p>Learn how to track and optimize your bio link performance for maximum engagement.</p>
+                </div>
+                
+                <div class="blog-preview-card">
+                    <div class="blog-icon">🎨</div>
+                    <h3>Design Best Practices</h3>
+                    <p>Discover design principles that convert visitors into engaged followers and customers.</p>
+                </div>
+                
+                <div class="blog-preview-card">
+                    <div class="blog-icon">🚀</div>
+                    <h3>Growth Strategies</h3>
+                    <p>Explore proven tactics used by successful creators to grow their online presence.</p>
+                </div>
+            </div>
+            
+            <div class="blog-cta">
+                <a href="/blog" class="blog-btn">Read Our Blog</a>
+                <p class="blog-note">Free guides, tips, and strategies updated weekly</p>
             </div>
         </div>
     </section>

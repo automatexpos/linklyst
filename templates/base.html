@@ -33,6 +33,8 @@
     <div class="container">
   <a href="{{ url_for('dashboard') if user else url_for('login', next='dashboard') }}" class="logo">Linklyst</a>
       <div class="nav-right">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="/blog">Blog</a>
         {% if user %}
           {% set excluded_pages = ['public_profile', 'login', 'register', 'logout'] %}
           {% if request.endpoint not in excluded_pages %}

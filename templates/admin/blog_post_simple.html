@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}{% if mode == 'new' %}Create New Blog Post{% else %}Edit: {{ post.title }}{% endif %} - Admin{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+    <div style="margin-bottom: 30px;">
+        <h1>{% if mode == 'new' %}Create New Blog Post{% else %}Edit Blog Post{% endif %}</h1>
+        <p style="color: #666; margin: 5px 0 0 0;">
+            {% if mode == 'new' %}
+            Create SEO-optimized content to boost your search rankings
+            {% else %}
+            Last updated: {{ post.updated_at[:19] }}
+            {% endif %}
+        </p>
+    </div>
+
+    <form method="POST" enctype="application/x-www-form-urlencoded" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <!-- Title -->
+        <div style="margin-bottom: 25px;">
+            <label for="title" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Title <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" 
+                   id="title" 
+                   name="title" 
+                   value="{{ post.title if post else '' }}"
+                   required
+                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                   placeholder="Enter an SEO-friendly title...">
+            <small style="color: #6b7280; font-size: 0.9rem;">This will be your main headline and used for SEO</small>
+        </div>
+
+        <!-- Excerpt -->
+        <div style="margin-bottom: 25px;">
+            <label for="excerpt" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Excerpt
+            </label>
+            <textarea id="excerpt" 
+                      name="excerpt" 
+                      rows="3"
+                      style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; resize: vertical;"
+                      placeholder="Brief summary for previews and social sharing...">{{ post.excerpt if post else '' }}</textarea>
+            <small style="color: #6b7280; font-size: 0.9rem;">Used for article previews and social media descriptions</small>
+        </div>
+
+        <!-- Category -->
+        <div style="margin-bottom: 25px;">
+            <label for="category_id" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Category <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="category_id" 
+                    name="category_id" 
+                    required
+                    style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+                <option value="">Select a category...</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" 
+                        {% if post and post.category_id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Tags -->
+        <div style="margin-bottom: 25px;">
+            <label for="tags" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Tags
+            </label>
+            <input type="text" 
+                   id="tags" 
+                   name="tags" 
+                   value="{% if current_tags %}{{ current_tags | join(', ') }}{% endif %}"
+                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                   placeholder="SEO, Link-in-Bio, Social Media (comma separated)">
+            <small style="color: #6b7280; font-size: 0.9rem;">Separate tags with commas. Used for SEO and content organization</small>
+        </div>
+
+        <!-- Status -->
+        <div style="margin-bottom: 25px;">
+            <label for="status" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Status <span style="color: #ef4444;">*</span>
+            </label>
+            <select id="status" 
+                    name="status" 
+                    required
+                    style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+                <option value="draft" {% if not post or post.status == 'draft' %}selected{% endif %}>
+                    📝 Draft (Not visible to public)
+                </option>
+                <option value="published" {% if post and post.status == 'published' %}selected{% endif %}>
+                    🌟 Published (Live on website)
+                </option>
+                <option value="archived" {% if post and post.status == 'archived' %}selected{% endif %}>
+                    📦 Archived (Hidden from public)
+                </option>
+            </select>
+            <small style="color: #6b7280; font-size: 0.9rem;">Choose "Published" to make the post live on your website</small>
+        </div>
+
+        <!-- Content - Simple HTML Textarea -->
+        <div style="margin-bottom: 25px;">
+            <label for="content" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Content <span style="color: #ef4444;">*</span>
+            </label>
+            <textarea id="content" 
+                      name="content" 
+                      rows="20"
+                      required
+                      style="width: 100%; padding: 15px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; font-family: 'Courier New', monospace; resize: vertical;"
+                      placeholder="Write your blog post content here... You can use HTML tags like:&#10;&#10;<h2>Section Title</h2>&#10;<p>Paragraph text...</p>&#10;<ul><li>List item</li></ul>&#10;<strong>Bold text</strong>&#10;<em>Italic text</em>&#10;<a href='url'>Link text</a>">{{ post.content if post else '' }}</textarea>
+            <small style="color: #6b7280; font-size: 0.9rem;">
+                <strong>HTML Tags you can use:</strong> &lt;h2&gt;, &lt;h3&gt;, &lt;p&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;, &lt;a&gt;, &lt;blockquote&gt;, &lt;br&gt;
+            </small>
+        </div>
+
+        <!-- Quick HTML Helper Buttons -->
+        <div style="margin-bottom: 25px; padding: 15px; background: #f9fafb; border-radius: 6px;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #374151;">Quick HTML Helpers:</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" onclick="insertHtml('<h2>', '</h2>')" style="padding: 5px 10px; background: #e5e7eb; border: none; border-radius: 4px; cursor: pointer;">H2 Title</button>
+                <button type="button" onclick="insertHtml('<p>', '</p>')" style="padding: 5px 10px; background: #e5e7eb; border: none; border-radius: 4px; cursor: pointer;">Paragraph</button>
+                <button type="button" onclick="insertHtml('<strong>', '</strong>')" style="padding: 5px 10px; background: #e5e7eb; border: none; border-radius: 4px; cursor: pointer;">Bold</button>
+                <button type="button" onclick="insertHtml('<ul><li>', '</li></ul>')" style="padding: 5px 10px; background: #e5e7eb; border: none; border-radius: 4px; cursor: pointer;">List</button>
+                <button type="button" onclick="insertHtml('<a href=\"\">', '</a>')" style="padding: 5px 10px; background: #e5e7eb; border: none; border-radius: 4px; cursor: pointer;">Link</button>
+            </div>
+        </div>
+
+        <!-- SEO Section -->
+        <div style="margin-bottom: 25px; padding: 20px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb;">
+            <h3 style="margin: 0 0 15px 0; color: #374151; font-size: 1.1rem;">SEO Settings</h3>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="meta_description" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                    Meta Description
+                </label>
+                <textarea id="meta_description" 
+                          name="meta_description" 
+                          rows="2"
+                          maxlength="160"
+                          style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; resize: vertical;"
+                          placeholder="SEO description for search engines (max 160 characters)...">{{ post.meta_description if post else '' }}</textarea>
+                <small id="meta_desc_counter" style="color: #6b7280; font-size: 0.9rem;">This appears in search results. Keep it under 160 characters.</small>
+            </div>
+
+            <div>
+                <label for="meta_keywords" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                    Meta Keywords
+                </label>
+                <input type="text" 
+                       id="meta_keywords" 
+                       name="meta_keywords" 
+                       value="{{ post.meta_keywords if post else '' }}"
+                       style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                       placeholder="link-in-bio, social media, linktree alternative">
+                <small style="color: #6b7280; font-size: 0.9rem;">Target keywords for search engines (comma separated)</small>
+            </div>
+        </div>
+
+        <!-- Featured Image -->
+        <div style="margin-bottom: 25px;">
+            <label for="featured_image" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Featured Image URL
+            </label>
+            <input type="url" 
+                   id="featured_image" 
+                   name="featured_image" 
+                   value="{{ post.featured_image if post else '' }}"
+                   style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                   placeholder="https://example.com/image.jpg">
+            
+            <div style="margin-top: 10px;">
+                <label for="featured_image_alt" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                    Image Alt Text
+                </label>
+                <input type="text" 
+                       id="featured_image_alt" 
+                       name="featured_image_alt" 
+                       value="{{ post.featured_image_alt if post else '' }}"
+                       style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;"
+                       placeholder="Descriptive text for accessibility and SEO">
+            </div>
+            <small style="color: #6b7280; font-size: 0.9rem;">Recommended: 1200x630px for optimal social media sharing</small>
+        </div>
+
+        <!-- Status -->
+        <div style="margin-bottom: 30px;">
+            <label for="status" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
+                Status
+            </label>
+            <select id="status" 
+                    name="status" 
+                    style="width: auto; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
+                <option value="draft" {% if not post or post.status == 'draft' %}selected{% endif %}>Draft</option>
+                <option value="published" {% if post and post.status == 'published' %}selected{% endif %}>Published</option>
+                <option value="archived" {% if post and post.status == 'archived' %}selected{% endif %}>Archived</option>
+            </select>
+            <small style="color: #6b7280; font-size: 0.9rem;">Only published posts appear on your blog</small>
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 15px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <button type="submit" 
+                    style="background: #667eea; color: white; padding: 14px 28px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem;">
+                {% if mode == 'new' %}Create Post{% else %}Update Post{% endif %}
+            </button>
+            
+            <a href="/admin/blog/posts" 
+               style="background: #f3f4f6; color: #374151; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 1rem;">
+                Cancel
+            </a>
+            
+            {% if mode == 'edit' and post.status == 'published' %}
+            <a href="/blog/{{ post.slug }}" 
+               target="_blank"
+               style="background: #10b981; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 1rem;">
+                View Post
+            </a>
+            {% endif %}
+            
+        </div>
+    </form>
+
+    <!-- Delete Button - Separate form outside main form -->
+    {% if mode == 'edit' %}
+    <div style="margin-top: 20px; text-align: center;">
+        <form method="POST" action="/admin/blog/post/{{ post.id }}/delete" style="display: inline;" 
+              onsubmit="return confirm('⚠️ WARNING: This will permanently delete this blog post and cannot be undone!\n\nAre you absolutely sure you want to delete: {{ post.title }}?');">
+            <button type="submit" 
+                    style="background: #ef4444; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.95rem; border: 2px solid #dc2626;">
+                🗑️ Delete This Post
+            </button>
+        </form>
+        <p style="color: #6b7280; font-size: 0.85rem; margin: 8px 0 0 0;">
+            ⚠️ This action cannot be undone
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// HTML insertion helper
+function insertHtml(startTag, endTag) {
+    var textarea = document.getElementById('content');
+    var start = textarea.selectionStart;
+    var end = textarea.selectionEnd;
+    var selectedText = textarea.value.substring(start, end);
+    
+    var replacement = startTag + selectedText + endTag;
+    textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+    
+    // Set cursor position after the inserted text
+    var newCursorPos = start + startTag.length + selectedText.length;
+    textarea.focus();
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+}
+
+// Auto-generate meta description from excerpt
+document.getElementById('excerpt').addEventListener('input', function() {
+    var excerpt = this.value;
+    var metaDesc = document.getElementById('meta_description');
+    if (excerpt && !metaDesc.value) {
+        metaDesc.value = excerpt.length > 160 ? excerpt.substring(0, 157) + '...' : excerpt;
+        updateMetaDescCounter();
+    }
+});
+
+// Character counter for meta description
+function updateMetaDescCounter() {
+    var metaDesc = document.getElementById('meta_description');
+    var counter = document.getElementById('meta_desc_counter');
+    var length = metaDesc.value.length;
+    counter.innerHTML = 'This appears in search results. Keep it under 160 characters. (' + length + '/160)';
+    counter.style.color = length > 160 ? '#ef4444' : '#6b7280';
+}
+
+document.getElementById('meta_description').addEventListener('input', updateMetaDescCounter);
+
+// Initialize counter on page load
+updateMetaDescCounter();
+</script>
+{% endblock %}

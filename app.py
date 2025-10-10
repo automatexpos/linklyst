@@ -334,14 +334,24 @@ def login():
         return render_template("login.html")
     email = request.form.get("email","").strip().lower()
     password = request.form.get("password","")
+    
+    # Debug logging
+    print(f"DEBUG Login - Email: '{email}', Password length: {len(password)}")
+    
     res = supabase.table("users").select("*").eq("email", email).execute()
     if not res.data:
+        print(f"DEBUG Login - No user found for email: {email}")
         flash("Invalid credentials","danger")
         return redirect(url_for("login"))
     user = res.data[0]
     
+    print(f"DEBUG Login - User found: ID={user['id']}, Username={user['username']}")
+    print(f"DEBUG Login - Password hash exists: {user['password_hash'] is not None}")
+    print(f"DEBUG Login - Password hash value: {repr(user['password_hash'])}")
+    
     # Check if user signed up with Google (no password)
     if user["password_hash"] is None:
+        print("DEBUG Login - Password hash is None, redirecting to Google")
         flash("This account was created with Google. Please use 'Login with Google' button.", "info")
         return redirect(url_for("login"))
     
@@ -1896,3 +1906,371 @@ def reject_upgrade_request(request_id):
         flash("Error rejecting upgrade request.", "error")
     
     return redirect(url_for("admin_upgrade_requests"))
+
+# --- Admin Blog Routes ---
+@app.route("/admin/blog/posts")
+@login_required
+def admin_blog_posts():
+    """Admin page to manage blog posts"""
+    user = current_user()
+    admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
+    
+    print(f"DEBUG Admin Check - User: {user}")
+    print(f"DEBUG Admin Check - User email: {user.get('email') if user else 'None'}")
+    print(f"DEBUG Admin Check - Admin emails: {admin_emails}")
+    print(f"DEBUG Admin Check - Email in admin list: {user.get('email') in admin_emails if user else False}")
+    
+    if not user or user.get("email") not in admin_emails:
+        flash("Access denied. Admin privileges required.", "error")
+        return redirect(url_for("dashboard"))
+    
+    try:
+        status_filter = request.args.get('status', 'all')
+        page = request.args.get('page', 1, type=int)
+        per_page = 20
+        offset = (page - 1) * per_page
+        
+        # Build query based on status filter
+        query = supabase.table("blog_posts").select("*")
+        if status_filter != 'all':
+            query = query.eq("status", status_filter)
+        
+        # Get posts with pagination
+        posts_result = query.order("created_at", desc=True).range(offset, offset + per_page - 1).execute()
+        
+        # Get total count
+        count_query = supabase.table("blog_posts").select("id", count="exact")
+        if status_filter != 'all':
+            count_query = count_query.eq("status", status_filter)
+        count_result = count_query.execute()
+        
+        posts = posts_result.data if posts_result.data else []
+        total_posts = count_result.count if hasattr(count_result, 'count') else 0
+        
+        # Calculate pagination
+        has_prev = page > 1
+        has_next = (page * per_page) < total_posts
+        prev_num = page - 1 if has_prev else None
+        next_num = page + 1 if has_next else None
+        
+        return render_template("admin/blog_posts.html",
+                             posts=posts,
+                             total_posts=total_posts,
+                             status_filter=status_filter,
+                             page=page,
+                             has_prev=has_prev,
+                             has_next=has_next,
+                             prev_num=prev_num,
+                             next_num=next_num)
+    
+    except Exception as e:
+        print(f"Error in admin_blog_posts: {e}")
+        flash("Error loading blog posts.", "error")
+        return render_template("admin/blog_posts.html", posts=[], total_posts=0, status_filter='all')
+
+@app.route("/admin/blog/post/new")
+@login_required 
+def admin_new_blog_post():
+    """Admin page to create new blog post"""
+    user = current_user()
+    admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
+    
+    if not user or user.get("email") not in admin_emails:
+        flash("Access denied. Admin privileges required.", "error")
+        return redirect(url_for("dashboard"))
+    
+    try:
+        # Get categories for dropdown
+        categories_result = supabase.table("blog_categories").select("*").order("name").execute()
+        categories = categories_result.data if categories_result.data else []
+        
+        return render_template("admin/blog_post_form.html", 
+                             post=None, 
+                             categories=categories, 
+                             is_edit=False)
+    except Exception as e:
+        print(f"Error loading new post form: {e}")
+        flash("Error loading form.", "error")
+        return redirect(url_for("admin_blog_posts"))
+
+@app.route("/admin/blog/post/<int:post_id>/edit")
+@login_required
+def admin_edit_blog_post(post_id):
+    """Admin page to edit existing blog post"""
+    user = current_user()
+    admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
+    
+    if not user or user.get("email") not in admin_emails:
+        flash("Access denied. Admin privileges required.", "error")
+        return redirect(url_for("dashboard"))
+    
+    try:
+        # Get post
+        post_result = supabase.table("blog_posts").select("*").eq("id", post_id).execute()
+        if not post_result.data:
+            flash("Blog post not found.", "error")
+            return redirect(url_for("admin_blog_posts"))
+        
+        post = post_result.data[0]
+        
+        # Get categories for dropdown
+        categories_result = supabase.table("blog_categories").select("*").order("name").execute()
+        categories = categories_result.data if categories_result.data else []
+        
+        return render_template("admin/blog_post_form.html", 
+                             post=post, 
+                             categories=categories, 
+                             is_edit=True)
+    except Exception as e:
+        print(f"Error loading edit post form: {e}")
+        flash("Error loading form.", "error")
+        return redirect(url_for("admin_blog_posts"))
+
+@app.route("/admin/blog/post", methods=["POST"])
+@app.route("/admin/blog/post/<int:post_id>", methods=["POST"])
+@login_required
+def admin_save_blog_post(post_id=None):
+    """Save blog post (create or update)"""
+    user = current_user()
+    admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
+    
+    if not user or user.get("email") not in admin_emails:
+        flash("Access denied. Admin privileges required.", "error")
+        return redirect(url_for("dashboard"))
+    
+    try:
+        title = request.form.get("title", "").strip()
+        content = request.form.get("content", "").strip()
+        excerpt = request.form.get("excerpt", "").strip()
+        status = request.form.get("status", "draft")
+        category_id = request.form.get("category_id")
+        featured_image = request.form.get("featured_image", "").strip()
+        meta_title = request.form.get("meta_title", "").strip()
+        meta_description = request.form.get("meta_description", "").strip()
+        
+        if not title or not content:
+            flash("Title and content are required.", "error")
+            return redirect(request.url)
+        
+        # Generate slug from title
+        import re
+        slug = re.sub(r'[^a-zA-Z0-9\s-]', '', title.lower())
+        slug = re.sub(r'\s+', '-', slug).strip('-')
+        
+        # Check if slug exists (exclude current post if editing)
+        slug_check = supabase.table("blog_posts").select("id").eq("slug", slug)
+        if post_id:
+            slug_check = slug_check.neq("id", post_id)
+        existing_slug = slug_check.execute()
+        
+        if existing_slug.data:
+            slug = f"{slug}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        
+        post_data = {
+            "title": title,
+            "slug": slug,
+            "content": content,
+            "excerpt": excerpt or content[:200] + "..." if len(content) > 200 else content,
+            "status": status,
+            "category_id": int(category_id) if category_id else None,
+            "featured_image": featured_image,
+            "meta_title": meta_title or title,
+            "meta_description": meta_description or excerpt,
+            "author_id": user["id"],
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        if post_id:
+            # Update existing post
+            if status == "published" and not supabase.table("blog_posts").select("published_at").eq("id", post_id).execute().data[0].get("published_at"):
+                post_data["published_at"] = datetime.utcnow().isoformat()
+            
+            supabase.table("blog_posts").update(post_data).eq("id", post_id).execute()
+            flash("Blog post updated successfully!", "success")
+        else:
+            # Create new post
+            post_data["created_at"] = datetime.utcnow().isoformat()
+            if status == "published":
+                post_data["published_at"] = datetime.utcnow().isoformat()
+            
+            supabase.table("blog_posts").insert(post_data).execute()
+            flash("Blog post created successfully!", "success")
+        
+        return redirect(url_for("admin_blog_posts"))
+        
+    except Exception as e:
+        print(f"Error saving blog post: {e}")
+        flash("Error saving blog post.", "error")
+        return redirect(request.url)
+
+@app.route("/admin/blog/post/<int:post_id>/delete", methods=["POST"])
+@login_required
+def admin_delete_blog_post(post_id):
+    """Delete blog post"""
+    user = current_user()
+    admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
+    
+    if not user or user.get("email") not in admin_emails:
+        flash("Access denied. Admin privileges required.", "error")
+        return redirect(url_for("dashboard"))
+    
+    try:
+        supabase.table("blog_posts").delete().eq("id", post_id).execute()
+        flash("Blog post deleted successfully!", "success")
+    except Exception as e:
+        print(f"Error deleting blog post: {e}")
+        flash("Error deleting blog post.", "error")
+    
+    return redirect(url_for("admin_blog_posts"))
+
+@app.route("/admin/blog")
+@login_required
+def admin_blog_dashboard():
+    """Admin blog dashboard with overview stats"""
+    user = current_user()
+    admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
+    
+    if not user or user.get("email") not in admin_emails:
+        flash("Access denied. Admin privileges required.", "error")
+        return redirect(url_for("dashboard"))
+    
+    try:
+        # Get blog stats
+        total_posts = supabase.table("blog_posts").select("id", count="exact").execute().count or 0
+        published_posts = supabase.table("blog_posts").select("id", count="exact").eq("status", "published").execute().count or 0
+        draft_posts = supabase.table("blog_posts").select("id", count="exact").eq("status", "draft").execute().count or 0
+        
+        # Get recent posts
+        recent_posts_result = supabase.table("blog_posts").select("*").order("created_at", desc=True).limit(5).execute()
+        recent_posts = recent_posts_result.data if recent_posts_result.data else []
+        
+        stats = {
+            'total_posts': total_posts,
+            'published_posts': published_posts,
+            'draft_posts': draft_posts,
+        }
+        
+        return render_template("admin/blog_dashboard.html", stats=stats, recent_posts=recent_posts)
+    except Exception as e:
+        print(f"Error in admin_blog_dashboard: {e}")
+        flash("Error loading dashboard.", "error")
+        return redirect(url_for("dashboard"))
+
+# --- Blog System Routes ---
+def convert_blog_post_dates(posts):
+    """Convert string dates to datetime objects for template compatibility"""
+    from datetime import datetime
+    
+    if not posts:
+        return posts
+        
+    for post in posts:
+        # Convert string dates to datetime objects for template strftime compatibility
+        for date_field in ['published_at', 'created_at', 'updated_at']:
+            if post.get(date_field) and isinstance(post[date_field], str):
+                try:
+                    # Parse ISO format date string
+                    post[date_field] = datetime.fromisoformat(post[date_field].replace('Z', '+00:00'))
+                except (ValueError, AttributeError):
+                    # If parsing fails, set to None
+                    post[date_field] = None
+    return posts
+
+@app.route("/blog")
+def blog_index():
+    """Blog homepage with SEO optimization"""
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = 12
+        offset = (page - 1) * per_page
+        
+        # Get published posts with pagination
+        posts_query = supabase.table("blog_posts").select("*").eq("status", "published").order("published_at", desc=True).range(offset, offset + per_page - 1)
+        posts_result = posts_query.execute()
+        
+        # Get total count for pagination
+        count_result = supabase.table("blog_posts").select("id", count="exact").eq("status", "published").execute()
+        total_posts = count_result.count if hasattr(count_result, 'count') else 0
+        
+        # Get featured posts (latest 3)
+        featured_result = supabase.table("blog_posts").select("*").eq("status", "published").order("published_at", desc=True).limit(3).execute()
+        
+        # Get categories with post counts
+        categories_result = supabase.table("blog_categories").select("*").execute()
+        
+        posts = posts_result.data if posts_result.data else []
+        featured_posts = featured_result.data if featured_result.data else []
+        categories = categories_result.data if categories_result.data else []
+        
+        # Convert string dates to datetime objects for template compatibility
+        posts = convert_blog_post_dates(posts)
+        featured_posts = convert_blog_post_dates(featured_posts)
+        
+        # Debug information
+        print(f"Debug - Blog posts query result: {len(posts)} posts found")
+        print(f"Debug - Total posts count: {total_posts}")
+        if posts:
+            print(f"Debug - First post: {posts[0].get('title', 'No title')}")
+        else:
+            # Check if there are any blog posts at all (any status)
+            all_posts = supabase.table("blog_posts").select("*").execute()
+            print(f"Debug - Total blog posts (any status): {len(all_posts.data) if all_posts.data else 0}")
+            if all_posts.data:
+                for post in all_posts.data[:3]:  # Show first 3 posts
+                    print(f"Debug - Post: '{post.get('title', 'No title')}' - Status: '{post.get('status', 'No status')}'")
+        
+        # Calculate pagination info
+        has_prev = page > 1
+        has_next = (page * per_page) < total_posts
+        prev_num = page - 1 if has_prev else None
+        next_num = page + 1 if has_next else None
+        
+        return render_template("blog/index.html", 
+                             posts=posts, 
+                             featured_posts=featured_posts,
+                             categories=categories,
+                             page=page,
+                             has_prev=has_prev,
+                             has_next=has_next,
+                             prev_num=prev_num,
+                             next_num=next_num,
+                             total_posts=total_posts)
+    except Exception as e:
+        print(f"Error in blog_index: {e}")
+        return render_template("blog/index.html", posts=[], featured_posts=[], categories=[], page=1, has_prev=False, has_next=False, prev_num=None, next_num=None, total_posts=0)
+
+@app.route("/blog/<slug>")
+def blog_post(slug):
+    """Individual blog post with full SEO optimization"""
+    try:
+        # Get blog post
+        post_result = supabase.table("blog_posts").select("*").eq("slug", slug).eq("status", "published").execute()
+        
+        if not post_result.data:
+            abort(404)
+        
+        post = post_result.data[0]
+        
+        # Convert string dates to datetime objects for template compatibility
+        post = convert_blog_post_dates([post])[0]
+        
+        # Increment view count
+        try:
+            supabase.table("blog_posts").update({"views": post.get("views", 0) + 1}).eq("id", post["id"]).execute()
+            post["views"] = post.get("views", 0) + 1
+        except:
+            pass  # Don't fail if view count update fails
+        
+        # Get related posts (same category, exclude current)
+        related_posts = []
+        if post.get("category_id"):
+            related_result = supabase.table("blog_posts").select("*").eq("category_id", post["category_id"]).neq("id", post["id"]).eq("status", "published").order("published_at", desc=True).limit(3).execute()
+            related_posts = related_result.data if related_result.data else []
+            related_posts = convert_blog_post_dates(related_posts)
+        
+        return render_template("blog/post.html", 
+                             post=post, 
+                             related_posts=related_posts)
+    except Exception as e:
+        print(f"Error in blog_post: {e}")
+        abort(404)

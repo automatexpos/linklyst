@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tag.name }} Articles - Linklyst Blog{% endblock %}
+
+{% block meta_description %}Articles tagged with "{{ tag.name }}" - Expert tips and insights for link-in-bio optimization and social media growth.{% endblock %}
+
+{% block canonical %}{{ request.url_root }}blog/tag/{{ tag.slug }}{% endblock %}
+
+{% block head %}
+<meta property="og:title" content="{{ tag.name }} Articles - Linklyst Blog">
+<meta property="og:description" content="Articles tagged with '{{ tag.name }}' - Expert tips and insights for link-in-bio optimization.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.url_root }}blog/tag/{{ tag.slug }}">
+<meta property="og:image" content="{{ url_for('static', filename='images/og-image.svg') }}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ tag.name }} Articles - Linklyst Blog">
+<meta name="twitter:description" content="Articles tagged with '{{ tag.name }}' - Expert tips and insights for link-in-bio optimization.">
+<meta name="twitter:image" content="{{ url_for('static', filename='images/og-image.svg') }}">
+
+<style>
+.tag-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 80px 20px 60px;
+    text-align: center;
+}
+
+.tag-hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    font-weight: 800;
+}
+
+.tag-hero p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.breadcrumb {
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: white;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.tag-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+}
+
+.post-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.post-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.post-card-content {
+    padding: 25px;
+}
+
+.post-card h2 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.post-card h2 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.post-card h2 a:hover {
+    color: #667eea;
+}
+
+.post-card .excerpt {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #888;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.category-badge {
+    background: #667eea;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    text-decoration: none;
+}
+
+.category-badge:hover {
+    background: #5a67d8;
+    color: white;
+}
+
+.read-more {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.read-more:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.empty-state p {
+    color: #888;
+}
+
+@media (max-width: 768px) {
+    .tag-hero h1 {
+        font-size: 2.2rem;
+    }
+    
+    .posts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tag-hero">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/">Home</a> / <a href="/blog">Blog</a> / Tag: {{ tag.name }}
+        </div>
+        <h1>{{ tag.name }}</h1>
+        <p>Articles tagged with "{{ tag.name }}"</p>
+    </div>
+</div>
+
+<div class="tag-container">
+    {% if posts %}
+    <div class="posts-grid">
+        {% for post in posts %}
+        <article class="post-card">
+            {% if post.featured_image %}
+            <img src="{{ post.featured_image }}" alt="{{ post.featured_image_alt or post.title }}" loading="lazy">
+            {% endif %}
+            <div class="post-card-content">
+                <div style="margin-bottom: 10px;">
+                    <a href="/blog/category/{{ post.category_slug }}" class="category-badge">{{ post.category_name }}</a>
+                </div>
+                <h2><a href="/blog/{{ post.slug }}">{{ post.title }}</a></h2>
+                <p class="excerpt">{{ post.excerpt }}</p>
+                <div class="post-meta">
+                    <div>
+                        <span>By {{ post.author_username or 'Linklyst Team' }}</span>
+                        <span> • {{ post.published_at[:10] }}</span>
+                        <span> • {{ post.reading_time }} min read</span>
+                    </div>
+                    <a href="/blog/{{ post.slug }}" class="read-more">Read More →</a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No articles with this tag yet</h3>
+        <p>We're working on creating amazing content tagged with "{{ tag.name }}". Check back soon!</p>
+        <p><a href="/blog">← Back to all articles</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

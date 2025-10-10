@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - Linklyst Blog{% endblock %}
+
+{% block meta_description %}{{ category.meta_description or category.description }}{% endblock %}
+
+{% block canonical %}{{ request.url_root }}blog/category/{{ category.slug }}{% endblock %}
+
+{% block head %}
+<meta property="og:title" content="{{ category.name }} - Linklyst Blog">
+<meta property="og:description" content="{{ category.description }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.url_root }}blog/category/{{ category.slug }}">
+<meta property="og:image" content="{{ url_for('static', filename='images/og-image.svg') }}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ category.name }} - Linklyst Blog">
+<meta name="twitter:description" content="{{ category.description }}">
+<meta name="twitter:image" content="{{ url_for('static', filename='images/og-image.svg') }}">
+
+<!-- Category structured data -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "{{ category.name }}",
+    "description": "{{ category.description }}",
+    "url": "{{ request.url_root }}blog/category/{{ category.slug }}",
+    "publisher": {
+        "@type": "Organization",
+        "name": "Linklyst",
+        "url": "{{ request.url_root }}"
+    },
+    "mainEntity": {
+        "@type": "ItemList",
+        "itemListElement": [
+            {% for post in posts %}
+            {
+                "@type": "BlogPosting",
+                "headline": "{{ post.title }}",
+                "description": "{{ post.excerpt }}",
+                "url": "{{ request.url_root }}blog/{{ post.slug }}",
+                "datePublished": "{{ post.published_at }}",
+                "author": {
+                    "@type": "Person",
+                    "name": "{{ post.author_username or 'Linklyst Team' }}"
+                }
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+}
+</script>
+
+<style>
+.category-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 80px 20px 60px;
+    text-align: center;
+}
+
+.category-hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    font-weight: 800;
+}
+
+.category-hero p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.breadcrumb {
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.breadcrumb a {
+    color: white;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.category-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.post-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.post-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.post-card-content {
+    padding: 25px;
+}
+
+.post-card h2 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.post-card h2 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.post-card h2 a:hover {
+    color: #667eea;
+}
+
+.post-card .excerpt {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #888;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.read-more {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.read-more:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 40px;
+}
+
+.pagination a, .pagination span {
+    padding: 12px 18px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+}
+
+.pagination a:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.pagination .current {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.empty-state p {
+    color: #888;
+}
+
+@media (max-width: 768px) {
+    .category-hero h1 {
+        font-size: 2.2rem;
+    }
+    
+    .category-hero p {
+        font-size: 1.1rem;
+    }
+    
+    .posts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="category-hero">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/">Home</a> / <a href="/blog">Blog</a> / {{ category.name }}
+        </div>
+        <h1>{{ category.name }}</h1>
+        <p>{{ category.description }}</p>
+    </div>
+</div>
+
+<div class="category-container">
+    {% if posts %}
+    <div class="posts-grid">
+        {% for post in posts %}
+        <article class="post-card">
+            {% if post.featured_image %}
+            <img src="{{ post.featured_image }}" alt="{{ post.featured_image_alt or post.title }}" loading="lazy">
+            {% endif %}
+            <div class="post-card-content">
+                <h2><a href="/blog/{{ post.slug }}">{{ post.title }}</a></h2>
+                <p class="excerpt">{{ post.excerpt }}</p>
+                <div class="post-meta">
+                    <div>
+                        <span>By {{ post.author_username or 'Linklyst Team' }}</span>
+                        <span> • {{ post.published_at[:10] }}</span>
+                        <span> • {{ post.reading_time }} min read</span>
+                    </div>
+                    <a href="/blog/{{ post.slug }}" class="read-more">Read More →</a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if has_prev or has_next %}
+    <div class="pagination">
+        {% if has_prev %}
+        <a href="/blog/category/{{ category.slug }}?page={{ prev_num }}">&laquo; Previous</a>
+        {% endif %}
+        
+        <span class="current">Page {{ page }} of {{ (total_posts + 11) // 12 }}</span>
+        
+        {% if has_next %}
+        <a href="/blog/category/{{ category.slug }}?page={{ next_num }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <h3>No articles in this category yet</h3>
+        <p>We're working on creating amazing {{ category.name.lower() }} content for you. Check back soon!</p>
+        <p><a href="/blog">← Back to all articles</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
