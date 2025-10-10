@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linklyst — Professional Link-in-Bio Tool | 7-Day Free Trial</title>
+    <meta name="description" content="Create a professional link-in-bio landing page with Linklyst. Start your 7-day free trial - unlimited links, analytics, and custom branding. Only $5/month after trial.">
+    <link rel="canonical" href="{{ request.url_root }}">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Linklyst — Professional Link-in-Bio Tool | 7-Day Free Trial">
+    <meta property="og:description" content="Create a professional link-in-bio landing page with Linklyst. Start your 7-day free trial - unlimited links, analytics, and custom branding. Only $5/month after trial.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url_root }}">
+    <meta property="og:image" content="{{ url_for('static', filename='images/og-image.svg') }}">
+    <meta property="og:site_name" content="Linklyst">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Linklyst — Professional Link-in-Bio Tool | 7-Day Free Trial">
+    <meta name="twitter:description" content="Create a professional link-in-bio landing page with Linklyst. Start your 7-day free trial - unlimited links, analytics, and custom branding. Only $5/month after trial.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='images/og-image.svg') }}">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Linklyst",
+        "applicationCategory": "WebApplication",
+        "operatingSystem": "Any",
+        "url": "https://linklyst.space",
+        "description": "Professional link-in-bio builder for creators, influencers, and businesses. 7-day free trial, then $5/month.",
+        "offers": [
+            {
+                "@type": "Offer",
+                "name": "Free Trial",
+                "price": "0.00",
+                "priceCurrency": "USD",
+                "priceValidUntil": "7 days"
+            },
+            {
+                "@type": "Offer",
+                "name": "Pro Plan",
+                "price": "5.00",
+                "priceCurrency": "USD",
+                "billingIncrement": "monthly"
+            }
+        ],
+        "creator": {
+            "@type": "Organization",
+            "name": "AutomateXpo",
+            "url": "https://linklyst.space"
+        },
+        "featureList": [
+            "Unlimited links",
+            "Custom categories and subcategories",
+            "Click analytics",
+            "Custom branding",
+            "Mobile-optimized",
+            "Free forever"
+        ]
+    }
+    </script>
+    
+    <!-- Google Analytics (Replace with your actual GA4 tracking ID) -->
+    <!-- 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXX');
+    </script>
+    -->
+    
+    <!-- Google Search Console Verification (Add your verification code) -->
+    <!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE_HERE"> -->
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Homepage specific styles */
+        .hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            text-align: center;
+            padding: 100px 20px;
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="%23ffffff" opacity="0.1"><animate attributeName="opacity" dur="3s" values="0.1;0.3;0.1" repeatCount="indefinite"/></circle><circle cx="80" cy="30" r="1.5" fill="%23ffffff" opacity="0.15"><animate attributeName="opacity" dur="4s" values="0.15;0.4;0.15" repeatCount="indefinite" begin="1s"/></circle><circle cx="60" cy="70" r="1" fill="%23ffffff" opacity="0.2"><animate attributeName="opacity" dur="5s" values="0.2;0.5;0.2" repeatCount="indefinite" begin="2s"/></circle></svg>');
+            pointer-events: none;
+        }
+        
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 24px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            max-width: 650px;
+            opacity: 0.95;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%);
+            color: #1a1a2e;
+            padding: 18px 36px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: inline-block;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(0, 201, 255, 0.3);
+            text-transform: none;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 201, 255, 0.4);
+            background: linear-gradient(135deg, #92FE9D 0%, #00C9FF 100%);
+        }
+        
+        .features {
+            padding: 100px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 80px;
+            color: #1a1a2e;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 50px;
+        }
+        
+        .feature {
+            text-align: center;
+            padding: 40px 30px;
+            border-radius: 20px;
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00C9FF, transparent);
+            transition: left 0.5s;
+        }
+        
+        .feature:hover::before {
+            left: 100%;
+        }
+        
+        .feature:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 25px;
+            display: block;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+        
+        .feature h3 {
+            font-size: 1.6rem;
+            margin-bottom: 18px;
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+        
+        .feature p {
+            color: #555;
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .cta-section > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .cta-section h2 {
+            font-size: 2.8rem;
+            margin-bottom: 25px;
+            color: white;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .cta-section p {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.95);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            text-align: center;
+            padding: 60px 20px 40px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .nav-links {
+            margin-top: 20px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+        }
+        
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                padding: 60px 20px;
+                min-height: 60vh;
+            }
+            
+            .hero h1 {
+                font-size: 2.8rem;
+                margin-bottom: 20px;
+            }
+            
+            .hero p {
+                font-size: 1.25rem;
+                margin-bottom: 35px;
+            }
+            
+            .btn-primary {
+                padding: 16px 28px;
+                font-size: 1.1rem;
+            }
+            
+            .features {
+                padding: 60px 20px;
+            }
+            
+            .features h2 {
+                font-size: 2.2rem;
+                margin-bottom: 50px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 35px;
+            }
+            
+            .feature {
+                padding: 30px 25px;
+            }
+            
+            .cta-section {
+                padding: 60px 20px;
+            }
+            
+            .cta-section h2 {
+                font-size: 2.2rem;
+            }
+            
+            .cta-section p {
+                font-size: 1.1rem;
+            }
+            
+            .nav-links a {
+                display: inline-block;
+                margin: 5px 10px;
+            }
+        }
+        
+        /* Pricing Section Styles */
+        .pricing-section {
+            background: #f8f9fa;
+            padding: 100px 20px;
+        }
+        
+        .pricing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .pricing-section h2 {
+            font-size: 3rem;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .pricing-subtitle {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 60px;
+        }
+        
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto 80px;
+        }
+        
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 2px solid transparent;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        
+        .pro-card {
+            border-color: #00C9FF;
+            transform: scale(1.05);
+        }
+        
+        .pricing-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .pricing-badge.popular {
+            background: linear-gradient(135deg, #00C9FF, #92FE9D);
+            color: #1a1a2e;
+        }
+        
+        .pricing-card h3 {
+            font-size: 1.8rem;
+            color: #1a1a2e;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .price {
+            margin-bottom: 30px;
+        }
+        
+        .price-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        
+        .price-period {
+            font-size: 1.1rem;
+            color: #666;
+            margin-left: 5px;
+        }
+        
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+        
+        .pricing-features li {
+            padding: 8px 0;
+            color: #555;
+            font-size: 1.05rem;
+        }
+        
+        .pricing-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .trial-btn {
+            background: #f0f0f0;
+            color: #1a1a2e;
+            border: 2px solid #ddd;
+        }
+        
+        .trial-btn:hover {
+            background: #e0e0e0;
+            border-color: #ccc;
+        }
+        
+        .pro-btn {
+            background: linear-gradient(135deg, #00C9FF, #92FE9D);
+            color: #1a1a2e;
+            border: none;
+        }
+        
+        .pro-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 201, 255, 0.3);
+        }
+        
+        .pricing-note {
+            font-size: 0.9rem;
+            color: #888;
+            margin: 0;
+        }
+        
+        .pricing-faq {
+            margin-top: 60px;
+        }
+        
+        .pricing-faq h3 {
+            font-size: 2rem;
+            color: #1a1a2e;
+            margin-bottom: 40px;
+        }
+        
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            text-align: left;
+        }
+        
+        .faq-item {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .faq-item strong {
+            display: block;
+            color: #1a1a2e;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .faq-item p {
+            color: #666;
+            margin: 0;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .pricing-section {
+                padding: 60px 20px;
+            }
+            
+            .pricing-section h2 {
+                font-size: 2.2rem;
+            }
+            
+            .pricing-cards {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .pro-card {
+                transform: none;
+            }
+            
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Linklyst — Professional Link-in-Bio Tool</h1>
+        <p>Create your all-in-one social bio page in minutes. Organize links into categories, track clicks, and share your complete digital presence with one simple link.</p>
+        <a href="{{ url_for('register') }}" class="btn-primary">Start Your 7-Day Free Trial</a>
+        <div class="nav-links" style="margin-top: 30px;">
+            <a href="{{ url_for('login') }}">Already have an account? Sign In</a>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features">
+        <h2>Why Choose Linklyst?</h2>
+        <div class="features-grid">
+            <div class="feature">
+                <div class="feature-icon">🔗</div>
+                <h3>Unlimited Links</h3>
+                <p>Add as many links as you want. Organize them into custom categories and subcategories for perfect organization.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">📊</div>
+                <h3>Click Analytics</h3>
+                <p>Track which links get the most clicks. Understand your audience and optimize your content strategy.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <h3>Custom Branding</h3>
+                <p>Personalize your page with custom colors, bio text, and profile pictures. Make it uniquely yours.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">📱</div>
+                <h3>Mobile-First Design</h3>
+                <p>Your Linklyst page looks amazing on any device. Fast loading and optimized for mobile viewing.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <h3>Lightning Fast</h3>
+                <p>No slow loading times. Your links and content load instantly for the best user experience.</p>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">�</div>
+                <h3>7-Day Free Trial</h3>
+                <p>Try all features risk-free for 7 days. No credit card required. Upgrade anytime to keep your page active.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Pricing Section -->
+    <section class="pricing-section">
+        <div class="pricing-container">
+            <h2>Simple, Transparent Pricing</h2>
+            <p class="pricing-subtitle">Start with a free trial, upgrade when you're ready</p>
+            
+            <div class="pricing-cards">
+                <div class="pricing-card trial-card">
+                    <div class="pricing-badge">Start Here</div>
+                    <h3>Free Trial</h3>
+                    <div class="price">
+                        <span class="price-amount">$0</span>
+                        <span class="price-period">for 7 days</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ Unlimited links</li>
+                        <li>✓ Custom categories</li>
+                        <li>✓ Click analytics</li>
+                        <li>✓ Custom branding</li>
+                        <li>✓ Mobile optimized</li>
+                    </ul>
+                    <a href="{{ url_for('register') }}" class="pricing-btn trial-btn">Start Free Trial</a>
+                    <p class="pricing-note">No credit card required</p>
+                </div>
+                
+                <div class="pricing-card pro-card">
+                    <div class="pricing-badge popular">Most Popular</div>
+                    <h3>Pro Plan</h3>
+                    <div class="price">
+                        <span class="price-amount">$5</span>
+                        <span class="price-period">per month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ Everything in Free Trial</li>
+                        <li>✓ Unlimited link clicks</li>
+                        <li>✓ Advanced analytics</li>
+                        <li>✓ Custom domain support</li>
+                        <li>✓ Priority support</li>
+                        <li>✓ Remove Linklyst branding</li>
+                    </ul>
+                    <a href="{{ url_for('register') }}" class="pricing-btn pro-btn">Start with Trial</a>
+                    <p class="pricing-note">Upgrade anytime during trial</p>
+                </div>
+            </div>
+            
+            <div class="pricing-faq">
+                <h3>Frequently Asked Questions</h3>
+                <div class="faq-grid">
+                    <div class="faq-item">
+                        <strong>What happens after the 7-day trial?</strong>
+                        <p>Your account will be paused. Upgrade to Pro to reactivate and keep all your data.</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong>Can I cancel anytime?</strong>
+                        <p>Yes, cancel anytime. No long-term commitments or cancellation fees.</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong>Is there a setup fee?</strong>
+                        <p>No setup fees, no hidden costs. Just $5/month for unlimited access.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Call to Action -->
+    <section class="cta-section">
+        <h2>Ready to Get Started?</h2>
+        <p>Join thousands of creators, influencers, and businesses using Linklyst to share their digital presence.</p>
+        <a href="{{ url_for('register') }}" class="btn-primary">Start Your 7-Day Free Trial</a>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Linklyst — A project of <a href="https://automatexpo.vercel.app" style="color: #4CAF50;">AutomateXpo</a></p>
+        <div class="nav-links">
+            <a href="{{ url_for('login') }}">Sign In</a>
+            <a href="{{ url_for('register') }}">Sign Up</a>
+            <!-- Legal pages coming soon -->
+            <!-- <a href="/privacy">Privacy Policy</a> -->
+            <!-- <a href="/terms">Terms of Service</a> -->
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@{{ user.username }} | Linklyst Page</title>
+    <meta name="description" content="{{ user.username }}'s social links and content powered by Linklyst. {% if profile.bio %}{{ profile.bio }}{% endif %}">
+    <link rel="canonical" href="{{ request.url }}">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="@{{ user.username }} | Linklyst">
+    <meta property="og:description" content="{{ user.username }}'s link-in-bio page{% if profile.bio %} - {{ profile.bio }}{% endif %}">
+    <meta property="og:type" content="profile">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="{{ profile.avatar_url or url_for('static', filename='images/og-image.svg') }}">
+    <meta property="og:site_name" content="Linklyst">
+    <meta property="profile:username" content="{{ user.username }}">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="@{{ user.username }} | Linklyst">
+    <meta name="twitter:description" content="{{ user.username }}'s link-in-bio page{% if profile.bio %} - {{ profile.bio }}{% endif %}">
+    <meta name="twitter:image" content="{{ profile.avatar_url or url_for('static', filename='images/og-image.svg') }}">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "{{ profile.display_name or user.username }}",
+        "alternateName": "@{{ user.username }}",
+        "url": "{{ request.url }}",
+        {% if profile.bio %}"description": "{{ profile.bio }}",{% endif %}
+        {% if profile.avatar_url %}"image": "{{ profile.avatar_url }}",{% endif %}
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "{{ request.url }}"
+        },
+        "provider": {
+            "@type": "Organization",
+            "name": "Linklyst",
+            "url": "https://linklyst.space"
+        }
+    }
+    </script>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+    <script>
+        // Function to handle modal opening from non-dashboard pages
+        function openDashboardModal(modalId) {
+            // If we're on the dashboard, open the modal directly
+            if (window.location.pathname.includes('/dashboard') || typeof openModal === 'function') {
+                if (typeof openModal === 'function') {
+                    openModal(modalId);
+                } else if (typeof toggleSection === 'function') {
+                    const sectionId = modalId === 'profile-modal' ? 'profile-section' : 'categories-section';
+                    toggleSection(sectionId);
+                }
+            } else {
+                // Otherwise, redirect to dashboard with modal parameter
+                const modalType = modalId === 'profile-modal' ? 'profile' : 'categories';
+                window.location.href = '/dashboard?modal=' + modalType;
+            }
+        }
+    </script>
+</head>
+<body>
+    <nav class="topbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <strong>Linklyst</strong>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="{{ url_for('register') }}" class="nav-link">Sign Up</a>
+                <a href="{{ url_for('login') }}" class="nav-link">Sign In</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="container">
+        <div class="profile-card {{ profile.theme or 'default' }}">
+            {% if profile.avatar_url %}
+                <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ profile.display_name or user.username }}'s avatar" loading="lazy">
+            {% endif %}
+            
+            <h1>{{ profile.display_name or user.username }}</h1>
+            
+            {% if profile.bio %}
+                <p class="bio">{{ profile.bio }}</p>
+            {% endif %}
+
+            <!-- Categories Grid -->
+            <div class="public-content">
+                {% if categories %}
+                    <div class="public-categories-grid" id="categoriesGrid">
+                        {% for category in categories %}
+                            <div class="public-category-card" 
+                                 data-category-id="{{ category.id }}" 
+                                 onclick="toggleCategory({{ category.id }})"
+                                 style="border-color: {{ category.color }}">
+                                <div class="public-category-content">
+                                    <div class="category-icon" style="background-color: {{ category.color }}20; color: {{ category.color }}">
+                                        {% if category.icon_url %}
+                                            <img src="{{ category.icon_url }}" alt="{{ category.name }} icon" class="custom-icon" loading="lazy">
+                                        {% else %}
+                                            <i class="icon">📦</i>
+                                        {% endif %}
+                                    </div>
+                                    <h3>{{ category.name }}</h3>
+                                    {% if category.description %}
+                                        <p class="category-desc">{{ category.description }}</p>
+                                    {% endif %}
+                                    <span class="expand-indicator">+</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Category Content Container (Initially Hidden) -->
+                    <div class="content-container" id="contentContainer" style="display: none;">
+                        <div class="back-nav">
+                            <button onclick="showCategories()" class="back-btn">← Back to Categories</button>
+                            <h3 id="categoryTitle"></h3>
+                        </div>
+                        
+                        <!-- Direct Links Section -->
+                        <div class="direct-links-section" id="directLinksSection" style="display: none;">
+                            <div class="public-links-grid" id="linksGrid"></div>
+                        </div>
+                        
+                        <!-- Subcategories Section -->
+                        <div class="subcategories-section" id="subcategoriesSection" style="display: none;">
+                            <div class="public-subcategories-grid" id="subcategoriesGrid"></div>
+                        </div>
+                        
+                        <!-- Subcategory Links Section -->
+                        <div class="subcategory-links-section" id="subcategoryLinksSection" style="display: none;">
+                            <div class="back-nav">
+                                <button onclick="goBackToSubcategories()" class="back-btn">← Back</button>
+                                <h4 id="subcategoryTitle"></h4>
+                            </div>
+                            <div class="public-links-grid" id="subcategoryLinksGrid"></div>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Fallback for old system -->
+                    <div class="public-links-grid">
+                        {% for link in links %}
+                            <div class="public-link-card">
+                                <a href="/r/{{ link.id }}" target="_blank" class="public-link-content">
+                                    {% if link.image_url %}
+                                        <div class="link-icon">
+                                            <img src="{{ link.image_url }}" alt="{{ link.title }}" class="link-image" loading="lazy">
+                                        </div>
+                                    {% else %}
+                                        <div class="link-icon">🔗</div>
+                                    {% endif %}
+                                    <h4>{{ link.title }}</h4>
+                                    {% if link.description %}
+                                        <p class="link-desc">{{ link.description }}</p>
+                                    {% endif %}
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Powered by Linklyst -->
+        <div style="text-align: center; margin-top: 40px; padding: 20px; opacity: 0.7;">
+            <p>Powered by <a href="/" style="color: #4CAF50; text-decoration: none;">Linklyst</a> — Create your own link-in-bio page</p>
+        </div>
+    </main>
+
+    <script>
+        let currentCategoryId = null;
+        let currentCategoryName = '';
+
+        // Check for direct category or subcategory linking on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const directCategoryId = {{ direct_category_id|tojson }};
+            const directSubcategoryId = {{ direct_subcategory_id|tojson }};
+            
+            if (directCategoryId) {
+                toggleCategory(parseInt(directCategoryId));
+            } else if (directSubcategoryId) {
+                // Find which category contains this subcategory and load it
+                // This would require additional logic to find the parent category
+                console.log('Direct subcategory link:', directSubcategoryId);
+            }
+        });
+
+        function showCategories() {
+            document.getElementById('categoriesGrid').style.display = 'grid';
+            document.getElementById('contentContainer').style.display = 'none';
+            currentCategoryId = null;
+        }
+
+        function toggleCategory(categoryId) {
+            if (currentCategoryId === categoryId) {
+                showCategories();
+                return;
+            }
+            
+            currentCategoryId = categoryId;
+            
+            // Find category name
+            const categoryCard = document.querySelector(`[data-category-id="${categoryId}"]`);
+            currentCategoryName = categoryCard ? categoryCard.querySelector('h3').textContent : 'Category';
+            
+            document.getElementById('categoryTitle').textContent = currentCategoryName;
+            document.getElementById('categoriesGrid').style.display = 'none';
+            document.getElementById('contentContainer').style.display = 'block';
+            
+            // Load category content
+            loadCategoryContent(categoryId);
+        }
+
+        function loadCategoryContent(categoryId) {
+            fetch(`/api/category/${categoryId}/content`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    
+                    // Show subcategories if any
+                    if (data.subcategories && data.subcategories.length > 0) {
+                        displaySubcategories(data.subcategories);
+                        document.getElementById('subcategoriesSection').style.display = 'block';
+                    } else {
+                        document.getElementById('subcategoriesSection').style.display = 'none';
+                    }
+                    
+                    // Show direct links if any
+                    if (data.direct_links && data.direct_links.length > 0) {
+                        displayLinks(data.direct_links);
+                        document.getElementById('directLinksSection').style.display = 'block';
+                    } else {
+                        document.getElementById('directLinksSection').style.display = 'none';
+                    }
+                    
+                    // Hide subcategory links section
+                    document.getElementById('subcategoryLinksSection').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error loading category content:', error);
+                });
+        }
+
+        function toggleSubcategory(subcategoryId, subcategoryName) {
+            document.getElementById('subcategoryTitle').textContent = subcategoryName;
+            document.getElementById('subcategoriesSection').style.display = 'none';
+            document.getElementById('directLinksSection').style.display = 'none';
+            document.getElementById('subcategoryLinksSection').style.display = 'block';
+            
+            // Load subcategory links
+            fetch(`/api/subcategory/${subcategoryId}/links`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    
+                    displaySubcategoryLinks(data.links || []);
+                })
+                .catch(error => {
+                    console.error('Error loading subcategory links:', error);
+                });
+        }
+
+        function goBackToSubcategories() {
+            document.getElementById('subcategoriesSection').style.display = 'block';
+            document.getElementById('directLinksSection').style.display = 'block';
+            document.getElementById('subcategoryLinksSection').style.display = 'none';
+        }
+
+        function displaySubcategories(subcategories) {
+            const subcategoriesGrid = document.getElementById('subcategoriesGrid');
+            subcategoriesGrid.innerHTML = '';
+            
+            subcategories.forEach(subcategory => {
+                const subcategoryCard = document.createElement('div');
+                subcategoryCard.className = 'public-brand-card';
+                subcategoryCard.onclick = () => toggleSubcategory(subcategory.id, subcategory.name);
+                
+                subcategoryCard.innerHTML = `
+                    <div class="public-brand-content">
+                        <div class="brand-icon" style="background-color: ${subcategory.color}20; color: ${subcategory.color}">
+                            ${subcategory.icon_url ? `<img src="${subcategory.icon_url}" alt="${subcategory.name} icon" class="custom-icon" loading="lazy">` : '📁'}
+                        </div>
+                        <h4>${subcategory.name}</h4>
+                        ${subcategory.description ? `<p class="brand-desc">${subcategory.description}</p>` : ''}
+                        <span class="link-count">${subcategory.link_count || 0} links</span>
+                        <span class="expand-indicator">→</span>
+                    </div>
+                `;
+                
+                subcategoriesGrid.appendChild(subcategoryCard);
+            });
+        }
+
+        function displayLinks(links) {
+            const linksGrid = document.getElementById('linksGrid');
+            linksGrid.innerHTML = '';
+            
+            links.forEach(link => {
+                const linkCard = document.createElement('div');
+                linkCard.className = 'public-link-card';
+                
+                linkCard.innerHTML = `
+                    <a href="/r/${link.id}" target="_blank" class="public-link-content">
+                        ${link.image_url ? 
+                            `<div class="link-icon"><img src="${link.image_url}" alt="${link.title}" class="link-image" loading="lazy"></div>` : 
+                            `<div class="link-icon">🔗</div>`
+                        }
+                        <h4>${link.title}</h4>
+                        ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
+                    </a>
+                `;
+                
+                linksGrid.appendChild(linkCard);
+            });
+        }
+
+        function displaySubcategoryLinks(links) {
+            const linksGrid = document.getElementById('subcategoryLinksGrid');
+            linksGrid.innerHTML = '';
+            
+            links.forEach(link => {
+                const linkCard = document.createElement('div');
+                linkCard.className = 'public-link-card';
+                
+                linkCard.innerHTML = `
+                    <a href="/r/${link.id}" target="_blank" class="public-link-content">
+                        ${link.image_url ? 
+                            `<div class="link-icon"><img src="${link.image_url}" alt="${link.title}" class="link-image" loading="lazy"></div>` : 
+                            `<div class="link-icon">🔗</div>`
+                        }
+                        <h4>${link.title}</h4>
+                        ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
+                    </a>
+                `;
+                
+                linksGrid.appendChild(linkCard);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -4,7 +4,7 @@ from functools import wraps
 
 from flask import (
     Flask, render_template, request, redirect, url_for,
-    session, flash, abort, jsonify
+    session, flash, abort, jsonify, Response
 )
 from dotenv import load_dotenv
 from requests_oauthlib import OAuth2Session
@@ -53,6 +53,66 @@ app.secret_key = APP_SECRET
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# Domain redirection for production
+@app.before_request
+def enforce_domain():
+    """Redirect www to non-www domain for SEO consistency"""
+    if request.host == 'www.linklyst.space':
+        return redirect(request.url.replace('www.linklyst.space', 'linklyst.space'), code=301)
+    
+    # Force HTTPS in production
+    if not request.is_secure and request.host == 'linklyst.space':
+        return redirect(request.url.replace('http://', 'https://'), code=301)
+
+@app.before_request
+def check_trial_expiration():
+    """Check if user's trial has expired and disable account if necessary"""
+    # Skip check for public routes
+    public_routes = ['index', 'login', 'register', 'public_profile', 'public_category_direct', 
+                    'public_subcategory_direct', 'robots_txt', 'sitemap_xml', 'username_redirect',
+                    'privacy_policy', 'terms_of_service', 'api_stats']
+    
+    if request.endpoint in public_routes or request.endpoint is None:
+        return
+        
+    # Skip check for static files and auth routes
+    if request.path.startswith('/static/') or request.path.startswith('/auth/'):
+        return
+    
+    user_id = session.get("user_id")
+    if not user_id:
+        return  # Not logged in
+    
+    try:
+        # Get current user
+        user_res = supabase.table("users").select("*").eq("id", user_id).execute()
+        if not user_res.data:
+            return
+            
+        user = user_res.data[0]
+        
+        # Check if user is on trial and if trial has expired
+        if user.get("is_trial") and user.get("trial_end"):
+            from datetime import datetime
+            trial_end = datetime.fromisoformat(user["trial_end"].replace('Z', '+00:00'))
+            
+            if datetime.utcnow().replace(tzinfo=trial_end.tzinfo) > trial_end:
+                # Trial has expired, disable account
+                supabase.table("users").update({
+                    "is_active": False,
+                    "is_trial": False,
+                    "subscription_status": "expired"
+                }).eq("id", user_id).execute()
+                
+                session.clear()
+                flash("Your 7-day free trial has expired. Please upgrade to continue using Linklyst.", "warning")
+                return redirect(url_for("index"))
+                
+    except Exception as e:
+        print(f"Error checking trial expiration: {e}")
+        # Don't block the user if there's an error, just log it
+        pass
+
 # --- helpers ---
 def current_user():
     uid = session.get("user_id")
@@ -71,7 +131,33 @@ def current_user():
 
 @app.context_processor
 def inject_user():
-    return dict(user=current_user())
+    return dict(user=current_user(), trial_info=get_trial_info())
+
+def get_trial_info():
+    """Get trial information for the current user"""
+    user = current_user()
+    if not user:
+        return None
+        
+    if not user.get("is_trial"):
+        return {"is_trial": False, "is_active": user.get("is_active", True)}
+    
+    try:
+        from datetime import datetime
+        trial_end = datetime.fromisoformat(user["trial_end"].replace('Z', '+00:00'))
+        now = datetime.utcnow().replace(tzinfo=trial_end.tzinfo)
+        days_left = (trial_end - now).days
+        
+        return {
+            "is_trial": True,
+            "trial_end": trial_end,
+            "days_left": max(0, days_left),
+            "hours_left": max(0, (trial_end - now).seconds // 3600) if days_left == 0 else 0,
+            "is_expired": now > trial_end
+        }
+    except Exception as e:
+        print(f"Error calculating trial info: {e}")
+        return {"is_trial": False, "is_active": user.get("is_active", True)}
 
 def normalize_url(url):
     """Ensure URL has proper protocol prefix"""
@@ -199,13 +285,8 @@ def datetimefmt(value, fmt="%Y-%m-%d %H:%M"):
 # --- Routes ---
 @app.route("/")
 def index():
-    u = current_user()
-    if u:
-        # If user is logged in, redirect to dashboard
-        return redirect(url_for("dashboard"))
-    else:
-        # If not logged in, redirect to login
-        return redirect(url_for("login"))
+    # Show public marketing homepage
+    return render_template("index.html")
 
 # --- Auth ---
 @app.route("/register", methods=["GET","POST"])
@@ -219,12 +300,22 @@ def register():
         flash("Fill all fields","danger")
         return redirect(url_for("register"))
     pw_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-    # insert user
+    
+    # Calculate trial end date (7 days from now)
+    from datetime import datetime, timedelta
+    trial_start = datetime.utcnow()
+    trial_end = trial_start + timedelta(days=7)
+    
+    # insert user with trial information
     res = supabase.table("users").insert({
         "email": email,
         "username": username,
         "password_hash": pw_hash,
-        "is_active": False
+        "is_active": True,  # Active during trial
+        "trial_start": trial_start.isoformat(),
+        "trial_end": trial_end.isoformat(),
+        "is_trial": True,
+        "subscription_status": "trial"
     }).execute()
     if res.data == []:
         flash("Email or username already taken","danger")
@@ -234,7 +325,7 @@ def register():
         "user_id": user_id,
         "display_name": username
     }).execute()
-    flash("Account created successfully! Please wait for the confirmation to use your account.","info")
+    flash(f"Account created successfully! Your 7-day free trial is now active until {trial_end.strftime('%B %d, %Y')}.","success")
     return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET","POST"])
@@ -413,13 +504,22 @@ def google_callback():
             username_check = supabase.table("users").select("username").eq("username", username).execute()
             counter += 1
         
-        # Create new user with Google authentication
+        # Calculate trial end date (7 days from now)
+        from datetime import datetime, timedelta
+        trial_start = datetime.utcnow()
+        trial_end = trial_start + timedelta(days=7)
+        
+        # Create new user with Google authentication and trial
         new_user = supabase.table("users").insert({
             "email": email,
             "username": username,
             "google_id": google_id,
             "password_hash": None,  # No password for OAuth users
-            "is_active": False
+            "is_active": True,  # Active during trial
+            "trial_start": trial_start.isoformat(),
+            "trial_end": trial_end.isoformat(),
+            "is_trial": True,
+            "subscription_status": "trial"
         }).execute()
         
         if not new_user.data:
@@ -451,6 +551,14 @@ def google_callback():
 def dashboard():
     u = current_user()
     profile = supabase.table("profiles").select("*").eq("user_id", u["id"]).execute().data[0]
+    
+    # Check for pending upgrade request
+    try:
+        pending_request = supabase.table("upgrade_requests").select("*").eq("user_id", u["id"]).eq("status", "pending").execute()
+        u["pending_upgrade_request"] = len(pending_request.data) > 0
+    except Exception as e:
+        # If upgrade_requests table doesn't exist, assume no pending request
+        u["pending_upgrade_request"] = False
     
     # Get categories for this user
     try:
@@ -1054,7 +1162,7 @@ def public_profile(username):
         links = supabase.table("links").select("*").eq("user_id",user_row["id"]).eq("is_public",True).order("sort_order").execute().data
         return render_template("profile.html", profile=profile, user=user_row, links=links)
     
-    return render_template("public_profile.html", profile=profile, user=user_row, categories=categories, 
+    return render_template("user_profile_seo.html", profile=profile, user=user_row, categories=categories, 
                          direct_category_id=category_id, direct_subcategory_id=subcategory_id)
 
 # --- Redirect + record click ---
@@ -1527,3 +1635,252 @@ def submit_support_request():
         import traceback
         traceback.print_exc()
         return jsonify({"success": False, "error": "An unexpected error occurred. Please try again."}), 500
+
+# --- SEO Routes ---
+@app.route("/robots.txt")
+def robots_txt():
+    """Generate robots.txt dynamically"""
+    return """User-agent: *
+Allow: /
+Allow: /u/
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /auth/
+Disallow: /profile/
+Disallow: /category/
+Disallow: /subcategory/
+Disallow: /link/
+
+Sitemap: https://linklyst.space/sitemap.xml""", 200, {'Content-Type': 'text/plain'}
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    """Generate sitemap.xml dynamically"""
+    from flask import Response
+    from datetime import datetime
+    
+    pages = []
+    today = datetime.now().date().isoformat()
+    
+    # Static pages
+    pages.append(['/', today])
+    pages.append(['/register', today])
+    pages.append(['/login', today])
+    
+    # Dynamic user pages - get all users with active profiles
+    try:
+        users = supabase.table("users").select("username").execute()
+        for user in users.data:
+            if user.get('username'):
+                pages.append([f'/u/{user["username"]}', today])
+    except Exception as e:
+        print(f"Error fetching users for sitemap: {e}")
+    
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>',
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    
+    for page, date in pages:
+        xml.append(f'<url><loc>https://linklyst.space{page}</loc><lastmod>{date}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>')
+    
+    xml.append("</urlset>")
+    
+    return Response("\n".join(xml), mimetype='application/xml')
+
+# Add a simple username route that redirects to /u/<username>
+@app.route("/<username>")
+def username_redirect(username):
+    """Redirect /<username> to /u/<username> for better SEO"""
+    # First check if it's a known route to avoid conflicts
+    known_routes = ['register', 'login', 'dashboard', 'categories', 'profile', 'robots.txt', 'sitemap.xml', 'api', 'auth', 'u', 'r']
+    if username in known_routes:
+        abort(404)
+    
+    # Check if user exists
+    user_res = supabase.table("users").select("username").eq("username", username).execute()
+    if not user_res.data:
+        abort(404)
+    
+    return redirect(url_for('public_profile', username=username), code=301)
+
+# --- Legal Pages ---
+@app.route("/privacy")
+def privacy_policy():
+    """Privacy Policy page"""
+    return render_template("privacy.html")
+
+@app.route("/terms")
+def terms_of_service():
+    """Terms of Service page"""
+    return render_template("terms.html")
+
+# --- Upgrade System Routes ---
+@app.route("/upgrade")
+@login_required
+def upgrade():
+    """Show upgrade page"""
+    return render_template("upgrade.html")
+
+@app.route("/upgrade/request", methods=["POST"])
+@login_required
+def submit_upgrade_request():
+    """Submit upgrade request for admin approval"""
+    try:
+        user = current_user()
+        if not user:
+            flash("Please log in to submit an upgrade request.", "error")
+            return redirect(url_for("login"))
+        
+        business_name = request.form.get("business_name", "").strip()
+        use_case = request.form.get("use_case", "").strip()
+        additional_info = request.form.get("additional_info", "").strip()
+        
+        if not business_name or not use_case:
+            flash("Please fill in all required fields.", "error")
+            return redirect(url_for("upgrade"))
+        
+        # Check if upgrade_requests table exists and if user already has a pending request
+        try:
+            existing_request = supabase.table("upgrade_requests").select("*").eq("user_id", user["id"]).eq("status", "pending").execute()
+            
+            if existing_request.data:
+                flash("You already have a pending upgrade request. Please wait for admin approval.", "info")
+                return redirect(url_for("upgrade"))
+        except Exception as table_error:
+            # If table doesn't exist, show helpful error message
+            if "does not exist" in str(table_error).lower():
+                flash("Upgrade system is not yet configured. Please contact support at support@automatexpo.com", "error")
+                print(f"upgrade_requests table not found. Please create it using Supabase Dashboard.")
+                return redirect(url_for("upgrade"))
+            raise table_error
+        
+        # Insert upgrade request
+        request_data = {
+            "user_id": user["id"],
+            "username": user["username"],
+            "email": user["email"],
+            "business_name": business_name,
+            "use_case": use_case,
+            "additional_info": additional_info,
+            "status": "pending",
+            "requested_at": datetime.utcnow().isoformat(),
+            "trial_end": user.get("trial_end")
+        }
+        
+        result = supabase.table("upgrade_requests").insert(request_data).execute()
+        
+        if result.data:
+            flash("Upgrade request submitted successfully! An admin will review your request within 24 hours.", "success")
+            print(f"Upgrade request submitted - User: {user['username']}, Email: {user['email']}")
+        else:
+            flash("Failed to submit upgrade request. Please try again.", "error")
+            
+    except Exception as e:
+        print(f"Error submitting upgrade request: {str(e)}")
+        error_msg = str(e).lower()
+        if "does not exist" in error_msg:
+            flash("Upgrade system is being configured. Please try again later or contact support.", "info")
+        else:
+            flash("An error occurred while submitting your request. Please try again.", "error")
+    
+    return redirect(url_for("upgrade"))
+
+@app.route("/admin/upgrade-requests")
+@login_required
+def admin_upgrade_requests():
+    """Admin page to view and manage upgrade requests"""
+    user = current_user()
+    
+    # Simple admin check - in production, you'd want proper role-based access
+    admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]  # Add your admin emails
+    
+    if not user or user.get("email") not in admin_emails:
+        abort(403)  # Forbidden
+    
+    try:
+        # Get all upgrade requests
+        requests = supabase.table("upgrade_requests").select("*").order("requested_at", desc=True).execute()
+        return render_template("admin_upgrade_requests.html", requests=requests.data)
+    except Exception as e:
+        error_msg = str(e).lower()
+        if "does not exist" in error_msg:
+            flash("Upgrade system database not configured. Please set up the upgrade_requests table first.", "error")
+            print("upgrade_requests table missing. Please create it in Supabase Dashboard.")
+        else:
+            print(f"Error fetching upgrade requests: {e}")
+            flash("Error loading upgrade requests.", "error")
+        return redirect(url_for("dashboard"))
+
+@app.route("/admin/upgrade-requests/<request_id>/approve", methods=["POST"])
+@login_required
+def approve_upgrade_request(request_id):
+    """Approve an upgrade request"""
+    user = current_user()
+    admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
+    
+    if not user or user.get("email") not in admin_emails:
+        abort(403)
+    
+    try:
+        # Get the upgrade request
+        upgrade_request = supabase.table("upgrade_requests").select("*").eq("id", request_id).execute()
+        
+        if not upgrade_request.data:
+            flash("Upgrade request not found.", "error")
+            return redirect(url_for("admin_upgrade_requests"))
+        
+        request_data = upgrade_request.data[0]
+        user_id = request_data["user_id"]
+        
+        # Update user to Pro status
+        supabase.table("users").update({
+            "is_trial": False,
+            "subscription_status": "active",
+            "is_active": True,
+            "subscription_start": datetime.utcnow().isoformat(),
+            "subscription_end": None  # No end date for active subscriptions
+        }).eq("id", user_id).execute()
+        
+        # Mark request as approved
+        supabase.table("upgrade_requests").update({
+            "status": "approved",
+            "approved_at": datetime.utcnow().isoformat(),
+            "approved_by": user["email"]
+        }).eq("id", request_id).execute()
+        
+        flash(f"Upgrade request approved for {request_data['username']}!", "success")
+        print(f"Upgrade approved - User: {request_data['username']} by Admin: {user['email']}")
+        
+    except Exception as e:
+        print(f"Error approving upgrade request: {e}")
+        flash("Error approving upgrade request.", "error")
+    
+    return redirect(url_for("admin_upgrade_requests"))
+
+@app.route("/admin/upgrade-requests/<request_id>/reject", methods=["POST"])
+@login_required
+def reject_upgrade_request(request_id):
+    """Reject an upgrade request"""
+    user = current_user()
+    admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
+    
+    if not user or user.get("email") not in admin_emails:
+        abort(403)
+    
+    try:
+        rejection_reason = request.form.get("reason", "").strip()
+        
+        # Mark request as rejected
+        supabase.table("upgrade_requests").update({
+            "status": "rejected",
+            "rejected_at": datetime.utcnow().isoformat(),
+            "rejected_by": user["email"],
+            "rejection_reason": rejection_reason
+        }).eq("id", request_id).execute()
+        
+        flash("Upgrade request rejected.", "success")
+        
+    except Exception as e:
+        print(f"Error rejecting upgrade request: {e}")
+        flash("Error rejecting upgrade request.", "error")
+    
+    return redirect(url_for("admin_upgrade_requests"))

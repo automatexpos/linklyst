@@ -1,8 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard | Linklyst{% endblock %}
+{% block description %}Manage your Linklyst link-in-bio page. Add links, organize categories, and track analytics.{% endblock %}
+{% block meta %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 {% block content %}
 <div class="dashboard-content">
 <h2>Dashboard</h2>
+
+<!-- Admin Panel Link -->
+{% set admin_emails = ["admin@linklyst.space", "support@automatexpo.com"] %}
+{% if user and user.email in admin_emails %}
+<div class="admin-panel-link">
+    <a href="{{ url_for('admin_upgrade_requests') }}" class="btn-admin">🔧 Admin Panel - Upgrade Requests</a>
+</div>
+{% endif %}
+
+<!-- Trial Status Banner -->
+{% if trial_info and trial_info.is_trial %}
+<div class="trial-banner {% if trial_info.days_left <= 1 %}urgent{% elif trial_info.days_left <= 3 %}warning{% endif %}">
+    <div class="trial-content">
+        <div class="trial-info">
+            <h3>🚀 Free Trial Active</h3>
+            {% if trial_info.days_left > 0 %}
+                <p><strong>{{ trial_info.days_left }} days</strong> left in your free trial</p>
+            {% elif trial_info.hours_left > 0 %}
+                <p><strong>{{ trial_info.hours_left }} hours</strong> left in your free trial</p>
+            {% else %}
+                <p><strong>Trial expires soon!</strong> Request upgrade to keep your page active</p>
+            {% endif %}
+        </div>
+        <div class="trial-actions">
+            {% if user and user.pending_upgrade_request %}
+                <div class="upgrade-status pending">
+                    <span>📋 Upgrade Request Submitted</span>
+                    <small>Waiting for admin approval</small>
+                </div>
+            {% else %}
+                <a href="/upgrade" class="btn-upgrade">Request Pro Upgrade</a>
+                <small>Submit request for admin approval</small>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Always Visible: Analytics and Share Profile -->
 <div class="form-section">
@@ -879,4 +918,159 @@ function showCopyFeedback() {
   }, 2000);
 }
 </script>
+
+<style>
+/* Trial Banner Styles */
+.trial-banner {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border: 2px solid #2196f3;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+}
+
+.trial-banner.warning {
+    background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%);
+    border-color: #ff9800;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+}
+
+.trial-banner.urgent {
+    background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
+    border-color: #f44336;
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.15);
+    animation: pulse 2s infinite;
+}
+
+.trial-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.trial-info h3 {
+    margin: 0 0 8px 0;
+    color: #1976d2;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.trial-banner.warning .trial-info h3 {
+    color: #f57c00;
+}
+
+.trial-banner.urgent .trial-info h3 {
+    color: #d32f2f;
+}
+
+.trial-info p {
+    margin: 0;
+    color: #555;
+    font-size: 1rem;
+}
+
+.trial-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.btn-upgrade {
+    background: linear-gradient(135deg, #00C9FF, #92FE9D);
+    color: #1a1a2e;
+    padding: 12px 24px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 201, 255, 0.3);
+}
+
+.btn-upgrade:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 201, 255, 0.4);
+    color: #1a1a2e;
+    text-decoration: none;
+}
+
+.trial-actions small {
+    color: #666;
+    font-size: 0.85rem;
+    text-align: right;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+    .trial-content {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+    
+    .trial-actions {
+        align-items: center;
+    }
+    
+    .trial-actions small {
+        text-align: center;
+    }
+}
+
+.upgrade-status.pending {
+    background: linear-gradient(135deg, #ffa502, #ff6348);
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-align: center;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.upgrade-status.pending span {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.upgrade-status.pending small {
+    font-size: 12px;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-panel-link {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.btn-admin {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-admin:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    text-decoration: none;
+    color: white;
+}
+</style>
 {% endblock %}

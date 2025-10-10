@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /u/
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /auth/
+Disallow: /profile/
+Disallow: /category/
+Disallow: /subcategory/
+Disallow: /link/
+
+Sitemap: https://linklyst.space/sitemap.xml

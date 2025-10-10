@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+{% block title %}Upgrade to Pro | Linklyst{% endblock %}
+{% block description %}Upgrade to Linklyst Pro for unlimited links, advanced analytics, and premium features.{% endblock %}
+{% block content %}
+<div class="upgrade-container">
+    <div class="upgrade-header">
+        {% if trial_info and trial_info.is_trial %}
+            {% if trial_info.days_left > 0 %}
+                <h1>{{ trial_info.days_left }} Days Left in Your Trial</h1>
+                <p>Don't lose access to your Linklyst page! Upgrade now to keep all your links active.</p>
+            {% elif trial_info.hours_left > 0 %}
+                <h1>⏰ {{ trial_info.hours_left }} Hours Left!</h1>
+                <p>Your trial expires very soon. Upgrade now to avoid losing access to your page.</p>
+            {% else %}
+                <h1>🚨 Trial Expired</h1>
+                <p>Your trial has ended, but your data is safe. Upgrade to reactivate your Linklyst page.</p>
+            {% endif %}
+        {% else %}
+            <h1>Upgrade to Linklyst Pro</h1>
+            <p>Unlock unlimited features and keep your link-in-bio page active forever.</p>
+        {% endif %}
+    </div>
+
+    <div class="pricing-comparison">
+        <div class="comparison-grid">
+            <div class="plan-card trial-card">
+                <h3>Free Trial</h3>
+                <div class="price">
+                    <span class="price-amount">$0</span>
+                    <span class="price-period">for 7 days</span>
+                </div>
+                <ul class="features-list">
+                    <li class="included">✓ Up to 10 links</li>
+                    <li class="included">✓ Basic analytics</li>
+                    <li class="included">✓ Standard themes</li>
+                    <li class="limited">⏱ Limited time access</li>
+                    <li class="excluded">✗ Account expires after trial</li>
+                </ul>
+                <div class="plan-status">
+                    {% if trial_info and trial_info.is_trial %}
+                        <span class="current-plan">Current Plan</span>
+                    {% else %}
+                        <span class="expired-plan">Expired</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="plan-card pro-card recommended">
+                <div class="recommended-badge">Recommended</div>
+                <h3>Pro Plan</h3>
+                <div class="price">
+                    <span class="price-amount">$5</span>
+                    <span class="price-period">per month</span>
+                </div>
+                <ul class="features-list">
+                    <li class="included">✓ Unlimited links</li>
+                    <li class="included">✓ Advanced analytics & insights</li>
+                    <li class="included">✓ Custom themes & branding</li>
+                    <li class="included">✓ Custom domain support</li>
+                    <li class="included">✓ Priority customer support</li>
+                    <li class="included">✓ Remove Linklyst branding</li>
+                    <li class="included">✓ Link scheduling</li>
+                    <li class="included">✓ Team collaboration</li>
+                </ul>
+                <form action="{{ url_for('submit_upgrade_request') }}" method="POST" class="upgrade-form">
+                    <div class="upgrade-form-fields">
+                        <label for="business_name">Business/Personal Name:</label>
+                        <input type="text" id="business_name" name="business_name" required placeholder="Your name or business name">
+                        
+                        <label for="use_case">How will you use Linklyst?</label>
+                        <textarea id="use_case" name="use_case" required placeholder="Tell us about your intended use (e.g., personal brand, business links, social media, etc.)"></textarea>
+                        
+                        <label for="additional_info">Additional Information (Optional):</label>
+                        <textarea id="additional_info" name="additional_info" placeholder="Any special requirements or questions?"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="upgrade-btn">
+                        Request Pro Upgrade
+                    </button>
+                    <p class="billing-info">
+                        • Submit request for manual review<br>
+                        • Admin will contact you within 24 hours<br>
+                        • Your trial data will be preserved
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="upgrade-benefits">
+        <h2>Why Upgrade to Pro?</h2>
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <div class="benefit-icon">🔗</div>
+                <h3>Unlimited Everything</h3>
+                <p>Add unlimited links, categories, and subcategories. No restrictions on your creativity.</p>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">📊</div>
+                <h3>Advanced Analytics</h3>
+                <p>Detailed insights into your audience, click patterns, and performance metrics.</p>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">🎨</div>
+                <h3>Custom Branding</h3>
+                <p>Remove our branding and add your own. Make your page 100% yours.</p>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">🌐</div>
+                <h3>Custom Domain</h3>
+                <p>Use your own domain name for your link-in-bio page (yourdomain.com/links).</p>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">⏰</div>
+                <h3>Link Scheduling</h3>
+                <p>Schedule links to appear and disappear at specific times. Perfect for campaigns.</p>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">👥</div>
+                <h3>Team Features</h3>
+                <p>Collaborate with team members and manage multiple Linklyst pages.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="security-guarantee">
+        <h3>🔒 Your Data is Safe</h3>
+        <p>We never delete your data. Even if your trial expires, everything is safely stored and ready when you upgrade.</p>
+    </div>
+</div>
+
+<style>
+.upgrade-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.upgrade-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.upgrade-header h1 {
+    font-size: 2.5rem;
+    color: #1a1a2e;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.upgrade-header p {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 40px;
+    margin-bottom: 80px;
+}
+
+.plan-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: 2px solid #f0f0f0;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.plan-card.recommended {
+    border-color: #00C9FF;
+    transform: scale(1.05);
+}
+
+.recommended-badge {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #00C9FF, #92FE9D);
+    color: #1a1a2e;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.plan-card h3 {
+    font-size: 1.8rem;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.price {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.price-amount {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.price-period {
+    font-size: 1rem;
+    color: #666;
+    margin-left: 5px;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+.features-list li {
+    padding: 10px 0;
+    font-size: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.features-list li:last-child {
+    border-bottom: none;
+}
+
+.features-list .included {
+    color: #4CAF50;
+}
+
+.features-list .limited {
+    color: #FF9800;
+}
+
+.features-list .excluded {
+    color: #ccc;
+}
+
+.plan-status {
+    text-align: center;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.current-plan {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.expired-plan {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.upgrade-form {
+    text-align: left;
+}
+
+.upgrade-form-fields {
+    margin-bottom: 25px;
+}
+
+.upgrade-form-fields label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.upgrade-form-fields input,
+.upgrade-form-fields textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    transition: border-color 0.3s ease;
+    font-family: inherit;
+}
+
+.upgrade-form-fields input:focus,
+.upgrade-form-fields textarea:focus {
+    outline: none;
+    border-color: #00C9FF;
+    box-shadow: 0 0 0 3px rgba(0, 201, 255, 0.1);
+}
+
+.upgrade-form-fields textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.upgrade-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #00C9FF, #92FE9D);
+    color: #1a1a2e;
+    border: none;
+    padding: 18px 24px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+}
+
+.upgrade-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 201, 255, 0.3);
+}
+
+.billing-info {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.upgrade-benefits {
+    margin-bottom: 60px;
+}
+
+.upgrade-benefits h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #1a1a2e;
+    margin-bottom: 50px;
+    font-weight: 700;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+}
+
+.benefit-item {
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.benefit-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.benefit-item h3 {
+    font-size: 1.3rem;
+    color: #1a1a2e;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.benefit-item p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.security-guarantee {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    border: 2px solid #e9ecef;
+}
+
+.security-guarantee h3 {
+    color: #1a1a2e;
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+
+.security-guarantee p {
+    color: #666;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .upgrade-header h1 {
+        font-size: 2rem;
+    }
+    
+    .comparison-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .plan-card.recommended {
+        transform: none;
+    }
+    
+    .benefits-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+}
+</style>
+{% endblock %}

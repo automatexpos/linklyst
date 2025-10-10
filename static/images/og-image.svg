@@ -1,0 +1,23 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Logo/Icon placeholder -->
+  <circle cx="200" cy="315" r="80" fill="white" opacity="0.9"/>
+  <text x="200" y="335" font-family="Arial, sans-serif" font-size="60" fill="#667eea" text-anchor="middle" font-weight="bold">🔗</text>
+  
+  <!-- Text -->
+  <text x="350" y="280" font-family="Arial, sans-serif" font-size="72" fill="white" font-weight="bold">Linklyst</text>
+  <text x="350" y="340" font-family="Arial, sans-serif" font-size="36" fill="white" opacity="0.9">Free Link-in-Bio Tool</text>
+  <text x="350" y="390" font-family="Arial, sans-serif" font-size="28" fill="white" opacity="0.8">Create your all-in-one social bio page</text>
+  
+  <!-- Small branding -->
+  <text x="50" y="580" font-family="Arial, sans-serif" font-size="20" fill="white" opacity="0.7">linklyst.space</text>
+</svg>
