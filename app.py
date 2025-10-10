@@ -190,8 +190,6 @@ def get_user_analytics(user_id):
         links_res = supabase.table("links").select("id", count="exact").eq("user_id", user_id).execute()
         total_links = links_res.count or 0
         
-        print(f"Debug: Found {total_links} links for user {user_id}")
-        
         # Get total clicks count from clicks table
         if total_links > 0:
             # Get all link IDs for this user
@@ -206,8 +204,6 @@ def get_user_analytics(user_id):
                 total_clicks = 0
         else:
             total_clicks = 0
-        
-        print(f"Debug: Found {total_clicks} total clicks")
         
         # Get categories count
         try:
@@ -247,9 +243,7 @@ def get_user_analytics(user_id):
                 trending_links = link_stats[:2]
                 
             except Exception as e:
-                print(f"Debug: Error getting trending links: {str(e)}")
-        
-        print(f"Debug: Analytics - Links: {total_links}, Clicks: {total_clicks}, Categories: {categories_count}, Subcategories: {subcategories_count}")
+                pass  # Skip trending links if error occurs
         
         return {
             "total_links": total_links,
@@ -260,7 +254,6 @@ def get_user_analytics(user_id):
         }
         
     except Exception as e:
-        print(f"Debug: Error in get_user_analytics: {str(e)}")
         # Return empty stats if there's an error
         return {
             "total_links": 0,
@@ -335,23 +328,14 @@ def login():
     email = request.form.get("email","").strip().lower()
     password = request.form.get("password","")
     
-    # Debug logging
-    print(f"DEBUG Login - Email: '{email}', Password length: {len(password)}")
-    
     res = supabase.table("users").select("*").eq("email", email).execute()
     if not res.data:
-        print(f"DEBUG Login - No user found for email: {email}")
         flash("Invalid credentials","danger")
         return redirect(url_for("login"))
     user = res.data[0]
     
-    print(f"DEBUG Login - User found: ID={user['id']}, Username={user['username']}")
-    print(f"DEBUG Login - Password hash exists: {user['password_hash'] is not None}")
-    print(f"DEBUG Login - Password hash value: {repr(user['password_hash'])}")
-    
     # Check if user signed up with Google (no password)
     if user["password_hash"] is None:
-        print("DEBUG Login - Password hash is None, redirecting to Google")
         flash("This account was created with Google. Please use 'Login with Google' button.", "info")
         return redirect(url_for("login"))
     
@@ -404,28 +388,21 @@ def google_login():
 @app.route("/auth/google/callback")
 def google_callback():
     """Handle Google OAuth callback"""
-    print(f"Debug: OAuth callback called with URL: {request.url}")
-    print(f"Debug: Session oauth_state: {session.get('oauth_state', 'NOT FOUND')}")
-    print(f"Debug: Request args: {dict(request.args)}")
-    
     # Check if there's an error from Google
     if 'error' in request.args:
         error = request.args.get('error')
         error_description = request.args.get('error_description', 'Unknown error')
-        print(f"Debug: Google OAuth error: {error} - {error_description}")
         flash(f"Google authentication failed: {error_description}", "danger")
         return redirect(url_for("login"))
     
     # Check if oauth_state exists in session
     if "oauth_state" not in session:
-        print("Debug: OAuth state not found in session")
         flash("OAuth session expired. Please try again.", "danger")
         return redirect(url_for("login"))
     
     try:
         # Use dynamic redirect URI based on current request  
         redirect_uri = url_for('google_callback', _external=True)
-        print(f"Debug: Using redirect_uri: {redirect_uri}")
         
         google = OAuth2Session(
             CLIENT_ID, 
@@ -433,36 +410,27 @@ def google_callback():
             state=session["oauth_state"]
         )
         
-        print(f"Debug: Fetching token from Google...")
         token = google.fetch_token(
             GOOGLE_TOKEN_URL, 
             client_secret=CLIENT_SECRET, 
             authorization_response=request.url,
             include_client_id=True
         )
-        print(f"Debug: Token received successfully")
         
         # Get user info from Google
-        print(f"Debug: Getting user info from Google...")
         user_info_response = google.get(GOOGLE_USER_INFO_URL)
-        print(f"Debug: User info response status: {user_info_response.status_code}")
         
         if user_info_response.status_code != 200:
-            print(f"Debug: Failed to get user info. Response: {user_info_response.text}")
             flash("Failed to get user information from Google.", "danger")
             return redirect(url_for("login"))
             
         user_info = user_info_response.json()
-        print(f"Debug: User info received: {user_info}")
         
         google_id = user_info.get("id")
         email = user_info.get("email", "").lower().strip()
         name = user_info.get("name", "")
         
-        print(f"Debug: Extracted - ID: {google_id}, Email: {email}, Name: {name}")
-        
         if not email or not google_id:
-            print("Debug: Missing email or google_id")
             flash("Failed to get user information from Google.", "danger")
             return redirect(url_for("login"))
         
@@ -2206,19 +2174,7 @@ def blog_index():
         posts = convert_blog_post_dates(posts)
         featured_posts = convert_blog_post_dates(featured_posts)
         
-        # Debug information
-        print(f"Debug - Blog posts query result: {len(posts)} posts found")
-        print(f"Debug - Total posts count: {total_posts}")
-        if posts:
-            print(f"Debug - First post: {posts[0].get('title', 'No title')}")
-        else:
-            # Check if there are any blog posts at all (any status)
-            all_posts = supabase.table("blog_posts").select("*").execute()
-            print(f"Debug - Total blog posts (any status): {len(all_posts.data) if all_posts.data else 0}")
-            if all_posts.data:
-                for post in all_posts.data[:3]:  # Show first 3 posts
-                    print(f"Debug - Post: '{post.get('title', 'No title')}' - Status: '{post.get('status', 'No status')}'")
-        
+
         # Calculate pagination info
         has_prev = page > 1
         has_next = (page * per_page) < total_posts
@@ -2274,3 +2230,7 @@ def blog_post(slug):
     except Exception as e:
         print(f"Error in blog_post: {e}")
         abort(404)
+
+if __name__ == "__main__":
+    # For local development only
+    app.run(debug=False, host="127.0.0.1", port=5000)

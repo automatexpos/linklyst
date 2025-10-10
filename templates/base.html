@@ -4,10 +4,11 @@
   <meta charset="utf-8" />
   <title>{% block title %}Linklyst{% endblock %}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="{% block description %}Create your free link-in-bio page with Linklyst. Organize links, track clicks, and share your digital presence.{% endblock %}">
-  <link rel="canonical" href="{{ request.url }}">
+  <meta name="description" content="{% block meta_description %}{% block description %}Create your free link-in-bio page with Linklyst. Organize links, track clicks, and share your digital presence.{% endblock %}{% endblock %}">
+  <link rel="canonical" href="{% block canonical %}{{ request.url }}{% endblock %}">
   {% block meta %}{% endblock %}
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  {% block head %}{% endblock %}
   <script defer src="{{ url_for('static', filename='app.js') }}"></script>
   <script>
     // Function to handle modal opening from non-dashboard pages
