@@ -61,11 +61,8 @@ def enforce_domain():
     if request.host and 'linklyst.space' in request.host:
         if request.host == 'www.linklyst.space':
             return redirect(request.url.replace('www.linklyst.space', 'linklyst.space'), code=301)
-        
-        # Force HTTPS in production (Vercel handles this automatically)
-        # Commenting out as Vercel provides automatic HTTPS
-        # if not request.is_secure and request.host == 'linklyst.space':
-        #     return redirect(request.url.replace('http://', 'https://'), code=301)
+    
+    # No HTTPS redirect needed - Vercel handles this automatically
 
 @app.before_request
 def check_trial_expiration():
