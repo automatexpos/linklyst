@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
     author_id UUID REFERENCES users(id) ON DELETE CASCADE,
     meta_title VARCHAR(200),
     meta_description VARCHAR(300),
+    tags TEXT,
     views INTEGER DEFAULT 0,
     published_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

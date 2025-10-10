@@ -2067,7 +2067,8 @@ def admin_new_blog_post():
         
         return render_template("admin/blog_post_form.html", 
                              post=None, 
-                             categories=categories, 
+                             categories=categories,
+                             current_tags=[], 
                              mode='new',
                              is_edit=False)
     except Exception as e:
@@ -2095,6 +2096,11 @@ def admin_edit_blog_post(post_id):
         
         post = post_result.data[0]
         
+        # Process tags for display
+        current_tags = []
+        if post.get('tags'):
+            current_tags = [tag.strip() for tag in post['tags'].split(',') if tag.strip()]
+        
         # Get categories for dropdown (handle if table doesn't exist)
         categories = []
         try:
@@ -2107,6 +2113,7 @@ def admin_edit_blog_post(post_id):
         return render_template("admin/blog_post_form.html", 
                              post=post, 
                              categories=categories,
+                             current_tags=current_tags,
                              mode='edit', 
                              is_edit=True)
     except Exception as e:
@@ -2135,6 +2142,7 @@ def admin_save_blog_post(post_id=None):
         featured_image = request.form.get("featured_image", "").strip()
         meta_title = request.form.get("meta_title", "").strip()
         meta_description = request.form.get("meta_description", "").strip()
+        tags = request.form.get("tags", "").strip()
         
         if not title or not content:
             flash("Title and content are required.", "error")
@@ -2164,6 +2172,7 @@ def admin_save_blog_post(post_id=None):
             "featured_image": featured_image,
             "meta_title": meta_title or title,
             "meta_description": meta_description or excerpt,
+            "tags": tags,
             "author_id": user["id"],
             "updated_at": datetime.utcnow().isoformat()
         }
