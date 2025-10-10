@@ -1,4 +1,35 @@
-/* Modern, Minimal Blog Design */
+/* Modern, Minimal Blog Design - Force override all styles */
+
+/* Override body background specifically when blog container exists */
+html:has(.blog-container) body,
+body:has(.blog-container) {
+    background: #fafafa !important;
+    background-image: none !important;
+}
+
+/* Fallback for older browsers */
+.blog-page-wrapper {
+    background: #fafafa !important;
+    background-image: none !important;
+    min-height: 100vh !important;
+}
+
+/* Override the main container background when blog is present */
+main:has(.blog-page-wrapper) {
+    background: #fafafa !important;
+    background-image: none !important;
+}
+
+/* Style the topbar for blog pages */
+.topbar:has(~ main .blog-page-wrapper) {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.topbar:has(~ main .blog-page-wrapper)::before {
+    display: none !important;
+}
+
 .blog-container * {
     box-sizing: border-box;
 }
@@ -7,11 +38,13 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
     line-height: 1.6 !important;
     color: #1a1a1a !important;
-    background: #fafafa !important;
+    background: transparent !important;
     margin: 0;
     max-width: 800px;
     margin: 0 auto;
     padding: 0 24px;
+    position: relative !important;
+    min-height: 100vh !important;
 }
 
 /* Header */
