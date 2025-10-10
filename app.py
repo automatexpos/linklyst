@@ -57,12 +57,15 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 @app.before_request
 def enforce_domain():
     """Redirect www to non-www domain for SEO consistency"""
-    if request.host == 'www.linklyst.space':
-        return redirect(request.url.replace('www.linklyst.space', 'linklyst.space'), code=301)
-    
-    # Force HTTPS in production
-    if not request.is_secure and request.host == 'linklyst.space':
-        return redirect(request.url.replace('http://', 'https://'), code=301)
+    # Only apply redirects if we're on the production domain
+    if request.host and 'linklyst.space' in request.host:
+        if request.host == 'www.linklyst.space':
+            return redirect(request.url.replace('www.linklyst.space', 'linklyst.space'), code=301)
+        
+        # Force HTTPS in production (Vercel handles this automatically)
+        # Commenting out as Vercel provides automatic HTTPS
+        # if not request.is_secure and request.host == 'linklyst.space':
+        #     return redirect(request.url.replace('http://', 'https://'), code=301)
 
 @app.before_request
 def check_trial_expiration():
@@ -287,6 +290,24 @@ def datetimefmt(value, fmt="%Y-%m-%d %H:%M"):
 def index():
     # Show public marketing homepage
     return render_template("index.html")
+
+@app.route("/health")
+def health_check():
+    """Health check endpoint for debugging deployment"""
+    try:
+        # Test basic app functionality
+        import os
+        return {
+            "status": "healthy",
+            "flask_secret_set": bool(os.getenv("FLASK_SECRET_KEY")),
+            "supabase_url_set": bool(os.getenv("SUPABASE_URL")),
+            "supabase_key_set": bool(os.getenv("SUPABASE_KEY")),
+            "site_base": os.getenv("SITE_BASE", "not_set"),
+            "python_version": os.sys.version,
+            "working_directory": os.getcwd()
+        }
+    except Exception as e:
+        return {"status": "error", "error": str(e)}, 500
 
 # --- Auth ---
 @app.route("/register", methods=["GET","POST"])
