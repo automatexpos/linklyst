@@ -54,7 +54,7 @@
     </div>
   </nav>
 
-  <main class="container animate-fade-in">
+  <main class="container animate-fade-in" {% if request.endpoint and 'blog' in request.endpoint %}style="background: #fafafa !important; background-image: none !important;"{% endif %}>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="flash-area stagger-animation">

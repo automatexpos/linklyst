@@ -1,4 +1,19 @@
 /* Modern, Minimal Blog Design - Force override all styles */
+/* DEBUG: This CSS should load - if you see a red border, CSS is working */
+.blog-container {
+    border: 5px solid red !important;
+}
+
+/* Force body and html styling with highest specificity */
+html, body {
+    background: #fafafa !important;
+    background-image: none !important;
+}
+
+html body {
+    background: #fafafa !important;
+    background-image: none !important;
+}
 
 /* Override body background specifically when blog container exists */
 html:has(.blog-container) body,

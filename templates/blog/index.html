@@ -7,12 +7,27 @@
 {% block canonical %}{{ request.url_root }}blog{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}?v={{ range(1, 10000) | random }}" />
+<script>
+// Force blog styling on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Force body background override
+    document.body.style.setProperty('background', '#fafafa', 'important');
+    document.body.style.setProperty('background-image', 'none', 'important');
+    document.body.style.setProperty('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif', 'important');
+    
+    // Also force on documentElement (html)
+    document.documentElement.style.setProperty('background', '#fafafa', 'important');
+    document.documentElement.style.setProperty('background-image', 'none', 'important');
+    
+    console.log('Blog styling forced via JavaScript');
+});
+</script>
 {% endblock %}
 
 {% block content %}
-<div class="blog-page-wrapper">
-<div class="blog-container">
+<div class="blog-page-wrapper" style="background: #fafafa !important; background-image: none !important; min-height: 100vh !important;">
+<div class="blog-container" style="background: #fafafa !important; max-width: 800px !important; margin: 0 auto !important; padding: 0 24px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important; line-height: 1.6 !important; color: #1a1a1a !important;">
     <!-- Header -->
     <header class="blog-header">
         <h1 class="blog-title">Blog</h1>

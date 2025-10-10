@@ -16,11 +16,26 @@
 <meta property="og:url" content="{{ request.url_root }}blog/{{ post.slug }}">
 <meta property="og:image" content="{{ post.featured_image or url_for('static', filename='images/og-image.svg') }}">
 
-<link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}?v={{ range(1, 10000) | random }}" />
+<script>
+// Force blog styling on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Force body background override
+    document.body.style.setProperty('background', '#fafafa', 'important');
+    document.body.style.setProperty('background-image', 'none', 'important');
+    document.body.style.setProperty('font-family', '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif', 'important');
+    
+    // Also force on documentElement (html)
+    document.documentElement.style.setProperty('background', '#fafafa', 'important');
+    document.documentElement.style.setProperty('background-image', 'none', 'important');
+    
+    console.log('Blog styling forced via JavaScript');
+});
+</script>
 {% endblock %}
 
 {% block content %}
-<div class="blog-page-wrapper">
+<div class="blog-page-wrapper" style="background: #fafafa !important; background-image: none !important; min-height: 100vh !important;">
 <nav class="post-nav">
     <div class="nav-content">
         <a href="/blog" class="back-link">← Back to Blog</a>
