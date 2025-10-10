@@ -53,16 +53,16 @@ app.secret_key = APP_SECRET
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Domain redirection for production
-@app.before_request
-def enforce_domain():
-    """Redirect www to non-www domain for SEO consistency"""
-    # Only apply redirects if we're on the production domain
-    if request.host and 'linklyst.space' in request.host:
-        if request.host == 'www.linklyst.space':
-            return redirect(request.url.replace('www.linklyst.space', 'linklyst.space'), code=301)
-    
-    # No HTTPS redirect needed - Vercel handles this automatically
+# Domain redirection for production - DISABLED TO FIX REDIRECT LOOP
+# @app.before_request
+# def enforce_domain():
+#     """Redirect www to non-www domain for SEO consistency"""
+#     # Only apply redirects if we're on the production domain
+#     if request.host and 'linklyst.space' in request.host:
+#         if request.host == 'www.linklyst.space':
+#             return redirect(request.url.replace('www.linklyst.space', 'linklyst.space'), code=301)
+#     
+#     # No HTTPS redirect needed - Vercel handles this automatically
 
 @app.before_request
 def check_trial_expiration():
