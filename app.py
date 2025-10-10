@@ -2056,13 +2056,19 @@ def admin_new_blog_post():
         return redirect(url_for("dashboard"))
     
     try:
-        # Get categories for dropdown
-        categories_result = supabase.table("blog_categories").select("*").order("name").execute()
-        categories = categories_result.data if categories_result.data else []
+        # Get categories for dropdown (handle if table doesn't exist)
+        categories = []
+        try:
+            categories_result = supabase.table("blog_categories").select("*").order("name").execute()
+            categories = categories_result.data if categories_result.data else []
+        except Exception as cat_error:
+            print(f"Blog categories table not found: {cat_error}")
+            categories = []
         
         return render_template("admin/blog_post_form.html", 
                              post=None, 
                              categories=categories, 
+                             mode='new',
                              is_edit=False)
     except Exception as e:
         print(f"Error loading new post form: {e}")
@@ -2089,13 +2095,19 @@ def admin_edit_blog_post(post_id):
         
         post = post_result.data[0]
         
-        # Get categories for dropdown
-        categories_result = supabase.table("blog_categories").select("*").order("name").execute()
-        categories = categories_result.data if categories_result.data else []
+        # Get categories for dropdown (handle if table doesn't exist)
+        categories = []
+        try:
+            categories_result = supabase.table("blog_categories").select("*").order("name").execute()
+            categories = categories_result.data if categories_result.data else []
+        except Exception as cat_error:
+            print(f"Blog categories table not found: {cat_error}")
+            categories = []
         
         return render_template("admin/blog_post_form.html", 
                              post=post, 
-                             categories=categories, 
+                             categories=categories,
+                             mode='edit', 
                              is_edit=True)
     except Exception as e:
         print(f"Error loading edit post form: {e}")

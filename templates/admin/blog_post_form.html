@@ -63,13 +63,12 @@
         <!-- Category -->
         <div style="margin-bottom: 25px;">
             <label for="category_id" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">
-                Category <span style="color: #ef4444;">*</span>
+                Category
             </label>
             <select id="category_id" 
                     name="category_id" 
-                    required
                     style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem;">
-                <option value="">Select a category...</option>
+                <option value="">{% if categories %}Select a category...{% else %}No categories available{% endif %}</option>
                 {% for category in categories %}
                 <option value="{{ category.id }}" 
                         {% if post and post.category_id == category.id %}selected{% endif %}>
@@ -77,6 +76,9 @@
                 </option>
                 {% endfor %}
             </select>
+            {% if not categories %}
+            <small style="color: #f59e0b; font-size: 0.9rem;">Note: Create blog categories in your database to organize posts</small>
+            {% endif %}
         </div>
 
         <!-- Tags -->
