@@ -2129,6 +2129,9 @@ def admin_save_blog_post(post_id=None):
     user = current_user()
     admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
     
+    print(f"DEBUG: admin_save_blog_post called with post_id={post_id}, method={request.method}")
+    print(f"DEBUG: Request URL: {request.url}")
+    
     if not user or user.get("email") not in admin_emails:
         flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("dashboard"))

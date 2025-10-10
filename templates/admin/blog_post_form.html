@@ -32,7 +32,7 @@
     </div>
 
     <form method="POST" 
-          action="{% if post %}{{ url_for('admin_save_blog_post', post_id=post.id) }}{% else %}{{ url_for('admin_save_blog_post') }}{% endif %}"
+          action="{% if post and post.id %}/admin/blog/post/{{ post.id }}{% else %}/admin/blog/post{% endif %}"
           style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <!-- Title -->
         <div style="margin-bottom: 25px;">
