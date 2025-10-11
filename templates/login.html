@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Sign In | Linklyst{% endblock %}
 {% block description %}Sign in to your Linklyst account to manage your professional link-in-bio page, track analytics, and customize your brand.{% endblock %}
+{% block meta %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
 {% block head %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {

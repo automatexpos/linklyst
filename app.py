@@ -1744,6 +1744,8 @@ Allow: /
 Allow: /u/
 Allow: /blog
 Allow: /blog/
+Disallow: /login
+Disallow: /register
 Disallow: /dashboard
 Disallow: /api/
 Disallow: /auth/
@@ -1763,8 +1765,6 @@ def sitemap_xml():
         
         # Static pages
         pages.append(['/', today])
-        pages.append(['/register', today])
-        pages.append(['/login', today])
         pages.append(['/blog', today])
         pages.append(['/privacy', today])
         pages.append(['/terms', today])
@@ -1799,7 +1799,10 @@ def sitemap_xml():
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
         
         for page, date in pages:
-            xml.append(f'<url><loc>{base_url}{page}</loc><lastmod>{date}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>')
+            # Set higher priority for homepage
+            priority = "1.0" if page == "/" else "0.8"
+            changefreq = "daily" if page == "/" else "weekly"
+            xml.append(f'<url><loc>{base_url}{page}</loc><lastmod>{date}</lastmod><changefreq>{changefreq}</changefreq><priority>{priority}</priority></url>')
         
         xml.append("</urlset>")
         
