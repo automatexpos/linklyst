@@ -22,6 +22,10 @@
     <meta name="twitter:description" content="Create a professional link-in-bio landing page with Linklyst. Start your 7-day free trial - unlimited links, analytics, and custom branding. Only $5/month after trial.">
     <meta name="twitter:image" content="{{ url_for('static', filename='images/og-image.svg') }}">
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
@@ -81,11 +85,105 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         /* Homepage specific styles */
+        
+        /* Header and Logo Styles */
+        .main-header {
+            background: #1a1a1a;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 0;
+        }
+        
+        .main-header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: transform 0.2s ease;
+        }
+        
+        .logo-link:hover {
+            transform: scale(1.05);
+        }
+        
+        .logo {
+            height: 120px;
+            width: auto;
+            object-fit: contain;
+        }
+        
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            text-decoration: none;
+            color: white;
+        }
+        
+        .btn-outline {
+            border: 2px solid #6366f1;
+            background: transparent;
+            color: #6366f1;
+            font-weight: 600;
+        }
+        
+        .btn-outline:hover {
+            background: #6366f1;
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        /* Logo text styles for homepage */
+        .logo-text {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            text-decoration: none;
+            background: linear-gradient(135deg, #8B5CF6, #6366F1, #3B82F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            transition: all 0.2s ease-out;
+        }
+        
+        .logo-text:hover {
+            transform: scale(1.05);
+            text-decoration: none;
+        }
+
+        /* Adjust hero section for fixed header */
         .hero {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             color: white;
             text-align: center;
-            padding: 100px 20px;
+            padding: 180px 20px 100px 20px;
             min-height: 70vh;
             display: flex;
             flex-direction: column;
@@ -284,8 +382,25 @@
         }
         
         @media (max-width: 768px) {
+            .main-header {
+                padding: 15px 0;
+            }
+            
+            .logo {
+                height: 80px;
+            }
+            
+            .header-nav {
+                gap: 12px;
+            }
+            
+            .nav-link {
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+            
             .hero {
-                padding: 60px 20px;
+                padding: 130px 20px 60px 20px;
                 min-height: 60vh;
             }
             
@@ -642,6 +757,17 @@
     </style>
 </head>
 <body>
+    <!-- Header with Logo -->
+    <header class="main-header">
+        <div class="container">
+            <a href="{{ url_for('index') }}" class="logo-text">Linklyst Space</a>
+            <nav class="header-nav">
+                <a href="{{ url_for('login') }}" class="nav-link">Sign In</a>
+                <a href="{{ url_for('register') }}" class="nav-link btn-outline">Get Started</a>
+            </nav>
+        </div>
+    </header>
+
     <!-- Hero Section -->
     <section class="hero">
         <h1>Linklyst — Professional Link-in-Bio Tool</h1>

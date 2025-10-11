@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Sign In | Linklyst{% endblock %}
 {% block description %}Sign in to your Linklyst account and manage your link-in-bio page.{% endblock %}
+{% block head %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.setAttribute('data-page', 'login');
+  });
+</script>
+{% endblock %}
 {% block content %}
   <div class="auth-container">
     <div class="auth-card">

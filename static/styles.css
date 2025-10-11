@@ -204,10 +204,10 @@ body {
 
 /* Premium Navigation System */
 .topbar {
-  background: var(--bg-glass);
+  background: #11181b !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-glow);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: var(--space-5) 0;
   margin-bottom: var(--space-10);
   position: sticky;
@@ -243,12 +243,10 @@ body {
   font-weight: 800;
   font-size: var(--font-size-2xl);
   text-decoration: none;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+  background: linear-gradient(135deg, #8B5CF6, #6366F1, #3B82F6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  background-size: 200% 200%;
-  animation: gradientShift 3s ease-in-out infinite;
   letter-spacing: -0.02em;
   transition: all var(--transition-base);
 }
@@ -298,6 +296,55 @@ body {
 
 .nav-right a:hover::before {
   left: 100%;
+}
+
+/* Auth pages navigation styles */
+body[data-page="login"] .nav-right a,
+body[data-page="register"] .nav-right a {
+  color: white;
+}
+
+body[data-page="login"] .nav-right a:hover,
+body[data-page="register"] .nav-right a:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body[data-page="login"] .topbar .logo,
+body[data-page="register"] .topbar .logo {
+  background: linear-gradient(135deg, #8B5CF6, #6366F1, #3B82F6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Header navigation link styles */
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+  color: white;
+}
+
+.nav-link.btn-outline {
+  border: 2px solid #6366f1;
+  background: transparent;
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.nav-link.btn-outline:hover {
+  background: #6366f1;
+  color: white;
+  transform: translateY(-1px);
 }
 
 /* Premium Card System */
@@ -2580,8 +2627,8 @@ input[type="checkbox"] {
     margin-bottom: var(--space-6);
   }
   
-  .topbar .logo {
-    font-size: var(--font-size-xl);
+  .topbar .logo-img {
+    height: 40px;
   }
   
   .nav-right {

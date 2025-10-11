@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Create Free Account | Linklyst{% endblock %}
 {% block description %}Create your free Linklyst account and build your link-in-bio page in minutes. No credit card required.{% endblock %}
+{% block head %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.setAttribute('data-page', 'register');
+  });
+</script>
+{% endblock %}
 {% block content %}
   <div class="auth-container">
     <div class="auth-card">
