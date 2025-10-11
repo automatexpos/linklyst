@@ -4,7 +4,7 @@ from functools import wraps
 
 from flask import (
     Flask, render_template, request, redirect, url_for,
-    session, flash, abort, jsonify, Response, send_from_directory
+    session, flash, abort, jsonify, Response
 )
 from dotenv import load_dotenv
 from requests_oauthlib import OAuth2Session
@@ -1787,7 +1787,14 @@ def sitemap_xml():
 @app.route("/site.webmanifest")
 def webmanifest():
     """Serve the web app manifest"""
+    from flask import send_from_directory
     return send_from_directory(app.static_folder, 'site.webmanifest', mimetype='application/manifest+json')
+
+@app.route("/favicon.ico")
+def favicon():
+    """Serve favicon.ico for browsers that request it"""
+    from flask import send_from_directory
+    return send_from_directory(app.static_folder, 'favicon.png', mimetype='image/png')
 
 # Add a simple username route that redirects to /u/<username>
 @app.route("/<username>")
