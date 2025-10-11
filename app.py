@@ -1784,6 +1784,11 @@ def sitemap_xml():
     
     return Response("\n".join(xml), mimetype='application/xml')
 
+@app.route("/site.webmanifest")
+def webmanifest():
+    """Serve the web app manifest"""
+    return send_from_directory(app.static_folder, 'site.webmanifest', mimetype='application/manifest+json')
+
 # Add a simple username route that redirects to /u/<username>
 @app.route("/<username>")
 def username_redirect(username):
