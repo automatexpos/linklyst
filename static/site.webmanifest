@@ -1,7 +1,7 @@
 {
-    "name": "Linklyst",
+    "name": "Linklyst - Link in Bio Tool",
     "short_name": "Linklyst",
-    "description": "Professional link-in-bio tool with analytics and custom branding",
+    "description": "Create stunning link-in-bio pages in minutes. Free to start with powerful analytics and unlimited links.",
     "icons": [
         {
             "src": "/static/favicon.png",
