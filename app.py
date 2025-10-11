@@ -1741,6 +1741,8 @@ def robots_txt():
     return """User-agent: *
 Allow: /
 Allow: /u/
+Allow: /blog
+Allow: /blog/
 Disallow: /dashboard
 Disallow: /api/
 Disallow: /auth/
@@ -1764,6 +1766,7 @@ def sitemap_xml():
     pages.append(['/', today])
     pages.append(['/register', today])
     pages.append(['/login', today])
+    pages.append(['/blog', today])
     
     # Dynamic user pages - get all users with active profiles
     try:
@@ -1773,6 +1776,16 @@ def sitemap_xml():
                 pages.append([f'/u/{user["username"]}', today])
     except Exception as e:
         print(f"Error fetching users for sitemap: {e}")
+    
+    # Blog posts - get all published blog posts
+    try:
+        blog_posts = supabase.table("blog_posts").select("slug, published_at").eq("status", "published").execute()
+        for post in blog_posts.data:
+            if post.get('slug'):
+                post_date = post.get('published_at', today)[:10] if post.get('published_at') else today  # Extract date part
+                pages.append([f'/blog/{post["slug"]}', post_date])
+    except Exception as e:
+        print(f"Error fetching blog posts for sitemap: {e}")
     
     xml = ['<?xml version="1.0" encoding="UTF-8"?>',
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
