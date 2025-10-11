@@ -31,9 +31,9 @@
         </p>
     </div>
 
-    <form method="POST" 
-          action="{% if post and post.id %}/admin/blog/post/{{ post.id }}{% else %}/admin/blog/post{% endif %}"
-          style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <form method="POST"
+        action="{% if post and post.id %}/admin/blog/post/{{ post.id }}{% else %}/admin/blog/post{% endif %}"
+        style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <!-- Title -->
         <div style="margin-bottom: 25px;">
             <label for="title" style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">

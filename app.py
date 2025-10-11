@@ -2165,25 +2165,40 @@ def admin_save_blog_post(post_id=None):
         if existing_slug.data:
             slug = f"{slug}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
         
+        # Build post data with only the fields that exist in the table
         post_data = {
             "title": title,
             "slug": slug,
             "content": content,
             "excerpt": excerpt or content[:200] + "..." if len(content) > 200 else content,
             "status": status,
-            "category_id": int(category_id) if category_id else None,
-            "featured_image": featured_image,
-            "meta_title": meta_title or title,
-            "meta_description": meta_description or excerpt,
-            "tags": tags,
             "author_id": user["id"],
             "updated_at": datetime.utcnow().isoformat()
         }
         
+        # Add optional fields if they have values
+        if category_id:
+            post_data["category_id"] = int(category_id)
+        if featured_image:
+            post_data["featured_image"] = featured_image
+        if tags:
+            post_data["tags"] = tags
+        
+        # Try to add meta fields, but don't fail if they don't exist
+        try:
+            if meta_title or title:
+                post_data["meta_description"] = meta_description or excerpt or (content[:200] + "..." if len(content) > 200 else content)
+        except:
+            pass
+        
         if post_id:
             # Update existing post
-            if status == "published" and not supabase.table("blog_posts").select("published_at").eq("id", post_id).execute().data[0].get("published_at"):
-                post_data["published_at"] = datetime.utcnow().isoformat()
+            try:
+                existing_post = supabase.table("blog_posts").select("published_at").eq("id", post_id).execute().data[0]
+                if status == "published" and not existing_post.get("published_at"):
+                    post_data["published_at"] = datetime.utcnow().isoformat()
+            except:
+                pass  # If we can't check published_at, continue anyway
             
             supabase.table("blog_posts").update(post_data).eq("id", post_id).execute()
             flash("Blog post updated successfully!", "success")
