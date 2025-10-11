@@ -1738,7 +1738,8 @@ def debug_domain():
 @app.route("/robots.txt")
 def robots_txt():
     """Generate robots.txt dynamically"""
-    return """User-agent: *
+    base_url = request.url_root.rstrip('/')
+    return f"""User-agent: *
 Allow: /
 Allow: /u/
 Allow: /blog
@@ -1751,7 +1752,7 @@ Disallow: /category/
 Disallow: /subcategory/
 Disallow: /link/
 
-Sitemap: https://linklyst.space/sitemap.xml""", 200, {'Content-Type': 'text/plain'}
+Sitemap: {base_url}/sitemap.xml""", 200, {'Content-Type': 'text/plain'}
 
 @app.route("/sitemap.xml")
 def sitemap_xml():
@@ -1787,11 +1788,14 @@ def sitemap_xml():
     except Exception as e:
         print(f"Error fetching blog posts for sitemap: {e}")
     
+    # Get the base URL dynamically from the request
+    base_url = request.url_root.rstrip('/')
+    
     xml = ['<?xml version="1.0" encoding="UTF-8"?>',
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     
     for page, date in pages:
-        xml.append(f'<url><loc>https://linklyst.space{page}</loc><lastmod>{date}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>')
+        xml.append(f'<url><loc>{base_url}{page}</loc><lastmod>{date}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>')
     
     xml.append("</urlset>")
     
