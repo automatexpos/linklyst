@@ -1766,6 +1766,8 @@ def sitemap_xml():
         pages.append(['/register', today])
         pages.append(['/login', today])
         pages.append(['/blog', today])
+        pages.append(['/privacy', today])
+        pages.append(['/terms', today])
         
         # Dynamic user pages - get all users with active profiles
         try:
