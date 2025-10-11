@@ -1758,9 +1758,6 @@ Sitemap: {base_url}/sitemap.xml""", 200, {'Content-Type': 'text/plain'}
 def sitemap_xml():
     """Generate sitemap.xml dynamically"""
     try:
-        from flask import Response
-        from datetime import datetime
-        
         pages = []
         today = datetime.now().date().isoformat()
         
@@ -1769,30 +1766,30 @@ def sitemap_xml():
         pages.append(['/register', today])
         pages.append(['/login', today])
         pages.append(['/blog', today])
-    
-    # Dynamic user pages - get all users with active profiles
-    try:
-        users = supabase.table("users").select("username").execute()
-        if users.data:
-            for user in users.data:
-                if user and user.get('username'):
-                    pages.append([f'/u/{user["username"]}', today])
-    except Exception as e:
-        print(f"Error fetching users for sitemap: {e}")
-        # Continue without user pages if there's an error
-    
-    # Blog posts - get all published blog posts
-    try:
-        blog_posts = supabase.table("blog_posts").select("slug, published_at").eq("status", "published").execute()
-        if blog_posts.data:
-            for post in blog_posts.data:
-                if post and post.get('slug'):
-                    post_date = post.get('published_at', today)[:10] if post.get('published_at') else today  # Extract date part
-                    pages.append([f'/blog/{post["slug"]}', post_date])
-    except Exception as e:
-        print(f"Error fetching blog posts for sitemap: {e}")
-        # Continue without blog posts if there's an error
-    
+        
+        # Dynamic user pages - get all users with active profiles
+        try:
+            users = supabase.table("users").select("username").execute()
+            if users.data:
+                for user in users.data:
+                    if user and user.get('username'):
+                        pages.append([f'/u/{user["username"]}', today])
+        except Exception as e:
+            print(f"Error fetching users for sitemap: {e}")
+            # Continue without user pages if there's an error
+        
+        # Blog posts - get all published blog posts
+        try:
+            blog_posts = supabase.table("blog_posts").select("slug, published_at").eq("status", "published").execute()
+            if blog_posts.data:
+                for post in blog_posts.data:
+                    if post and post.get('slug'):
+                        post_date = post.get('published_at', today)[:10] if post.get('published_at') else today  # Extract date part
+                        pages.append([f'/blog/{post["slug"]}', post_date])
+        except Exception as e:
+            print(f"Error fetching blog posts for sitemap: {e}")
+            # Continue without blog posts if there's an error
+        
         # Get the base URL dynamically from the request
         base_url = request.url_root.rstrip('/')
         
@@ -1809,7 +1806,6 @@ def sitemap_xml():
     except Exception as e:
         print(f"Error generating sitemap: {e}")
         # Return a basic sitemap if there's an error
-        from datetime import datetime
         basic_sitemap = '''<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>https://linklyst.space/</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
