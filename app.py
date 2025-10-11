@@ -1757,49 +1757,100 @@ Sitemap: {base_url}/sitemap.xml""", 200, {'Content-Type': 'text/plain'}
 @app.route("/sitemap.xml")
 def sitemap_xml():
     """Generate sitemap.xml dynamically"""
-    from flask import Response
-    from datetime import datetime
-    
-    pages = []
-    today = datetime.now().date().isoformat()
-    
-    # Static pages
-    pages.append(['/', today])
-    pages.append(['/register', today])
-    pages.append(['/login', today])
-    pages.append(['/blog', today])
+    try:
+        from flask import Response
+        from datetime import datetime
+        
+        pages = []
+        today = datetime.now().date().isoformat()
+        
+        # Static pages
+        pages.append(['/', today])
+        pages.append(['/register', today])
+        pages.append(['/login', today])
+        pages.append(['/blog', today])
     
     # Dynamic user pages - get all users with active profiles
     try:
         users = supabase.table("users").select("username").execute()
-        for user in users.data:
-            if user.get('username'):
-                pages.append([f'/u/{user["username"]}', today])
+        if users.data:
+            for user in users.data:
+                if user and user.get('username'):
+                    pages.append([f'/u/{user["username"]}', today])
     except Exception as e:
         print(f"Error fetching users for sitemap: {e}")
+        # Continue without user pages if there's an error
     
     # Blog posts - get all published blog posts
     try:
         blog_posts = supabase.table("blog_posts").select("slug, published_at").eq("status", "published").execute()
-        for post in blog_posts.data:
-            if post.get('slug'):
-                post_date = post.get('published_at', today)[:10] if post.get('published_at') else today  # Extract date part
-                pages.append([f'/blog/{post["slug"]}', post_date])
+        if blog_posts.data:
+            for post in blog_posts.data:
+                if post and post.get('slug'):
+                    post_date = post.get('published_at', today)[:10] if post.get('published_at') else today  # Extract date part
+                    pages.append([f'/blog/{post["slug"]}', post_date])
     except Exception as e:
         print(f"Error fetching blog posts for sitemap: {e}")
+        # Continue without blog posts if there's an error
     
-    # Get the base URL dynamically from the request
-    base_url = request.url_root.rstrip('/')
+        # Get the base URL dynamically from the request
+        base_url = request.url_root.rstrip('/')
+        
+        xml = ['<?xml version="1.0" encoding="UTF-8"?>',
+               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+        
+        for page, date in pages:
+            xml.append(f'<url><loc>{base_url}{page}</loc><lastmod>{date}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>')
+        
+        xml.append("</urlset>")
+        
+        return Response("\n".join(xml), mimetype='application/xml')
     
-    xml = ['<?xml version="1.0" encoding="UTF-8"?>',
-           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    
-    for page, date in pages:
-        xml.append(f'<url><loc>{base_url}{page}</loc><lastmod>{date}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>')
-    
-    xml.append("</urlset>")
-    
-    return Response("\n".join(xml), mimetype='application/xml')
+    except Exception as e:
+        print(f"Error generating sitemap: {e}")
+        # Return a basic sitemap if there's an error
+        from datetime import datetime
+        basic_sitemap = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://linklyst.space/</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+<url><loc>https://linklyst.space/register</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+<url><loc>https://linklyst.space/login</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+</urlset>'''.format(today=datetime.now().date().isoformat())
+        return Response(basic_sitemap, mimetype='application/xml')
+
+@app.route("/sitemap-static.xml")
+def sitemap_static():
+    """Serve static sitemap as fallback"""
+    from flask import send_from_directory
+    return send_from_directory(app.static_folder, 'sitemap.xml', mimetype='application/xml')
+
+@app.route("/test-sitemap")
+def test_sitemap():
+    """Test sitemap generation (debug route)"""
+    try:
+        from datetime import datetime
+        
+        # Test basic functionality
+        today = datetime.now().date().isoformat()
+        
+        # Test if supabase is working
+        try:
+            users = supabase.table("users").select("username").execute()
+            user_count = len(users.data) if users.data else 0
+        except Exception as e:
+            user_count = f"Error: {str(e)}"
+        
+        return f"""
+        <h1>Sitemap Test</h1>
+        <p><strong>Date:</strong> {today}</p>
+        <p><strong>Users found:</strong> {user_count}</p>
+        <p><strong>Base URL:</strong> {request.url_root}</p>
+        <p><a href="/sitemap.xml" target="_blank">View Dynamic Sitemap</a></p>
+        <p><a href="/sitemap-static.xml" target="_blank">View Static Sitemap</a></p>
+        <p><a href="https://linklyst.space/sitemap.xml" target="_blank">View Production Sitemap</a></p>
+        """
+    except Exception as e:
+        return f"<h1>Sitemap Test Error</h1><p>{str(e)}</p>"
 
 @app.route("/site.webmanifest")
 def webmanifest():
