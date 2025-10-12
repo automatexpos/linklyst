@@ -288,8 +288,16 @@ def datetimefmt(value, fmt="%Y-%m-%d %H:%M"):
 # --- Routes ---
 @app.route("/")
 def index():
+    # Fetch testimonials for the homepage
+    try:
+        testimonials_res = supabase.table("testimonials").select("*").eq("is_active", True).order("display_order").execute()
+        testimonials = testimonials_res.data if testimonials_res.data else []
+    except Exception as e:
+        print(f"Error fetching testimonials: {e}")
+        testimonials = []
+    
     # Show public marketing homepage
-    return render_template("index.html")
+    return render_template("index.html", testimonials=testimonials)
 
 # --- Auth ---
 @app.route("/register", methods=["GET","POST"])
@@ -1647,6 +1655,17 @@ def submit_support_request():
         import traceback
         traceback.print_exc()
         return jsonify({"success": False, "error": "An unexpected error occurred. Please try again."}), 500
+
+# --- Testimonials API ---
+@app.route("/api/testimonials", methods=["GET"])
+def get_testimonials():
+    """Get all active testimonials"""
+    try:
+        result = supabase.table("testimonials").select("*").eq("is_active", True).order("display_order").execute()
+        return jsonify({"success": True, "testimonials": result.data})
+    except Exception as e:
+        print(f"Error fetching testimonials: {e}")
+        return jsonify({"success": False, "error": "Failed to fetch testimonials"}), 500
 
 # --- Static File Debug Route ---
 @app.route("/static/<path:filename>")

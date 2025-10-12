@@ -324,6 +324,125 @@
             font-size: 1.05rem;
         }
         
+        .testimonials-section {
+            padding: 80px 20px;
+            background: #f8f9fc;
+            overflow: hidden;
+        }
+
+        .testimonials-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .testimonials-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .testimonials-section .section-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 50px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .testimonials-track {
+            display: flex;
+            gap: 1.5rem;
+            animation: scroll 25s linear infinite;
+            width: fit-content;
+        }
+
+        .testimonial {
+            flex: 0 0 350px;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .testimonial:hover {
+            transform: translateY(-5px);
+        }
+
+        .testimonial img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1.5rem;
+            border: 3px solid #4CAF50;
+        }
+
+        .testimonial-content {
+            font-size: 1rem;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        .testimonial-author h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .testimonial-author .position {
+            font-size: 0.9rem;
+            color: #4CAF50;
+            margin-top: 0.25rem;
+        }
+
+        .testimonial-rating {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+        }
+
+        .testimonial-rating .star {
+            color: #ffd700;
+            font-size: 1.2rem;
+        }
+
+        /* Infinite scroll animation - increased speed */
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 768px) {
+            .testimonials-section {
+                padding: 60px 20px;
+            }
+            
+            .testimonials-section h2 {
+                font-size: 2rem;
+            }
+            
+            .testimonial {
+                flex: 0 0 300px;
+                padding: 1.5rem;
+            }
+            
+            .testimonials-track {
+                animation: scroll 20s linear infinite;
+            }
+        }
+
         .cta-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 80px 20px;
@@ -919,6 +1038,55 @@
                         <p>No setup fees, no hidden costs. Just $5/month for unlimited access.</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials-section">
+        <div class="testimonials-container">
+            <h2>What Our Users Say</h2>
+            <p class="section-subtitle">Join thousands of satisfied creators, influencers, and businesses who trust LinkLyst</p>
+            
+            <div class="testimonials-track">
+                {% for testimonial in testimonials %}
+                <div class="testimonial">
+                    <img src="{{ testimonial.avatar_url or 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face' }}" 
+                         alt="{{ testimonial.name }}">
+                    <div class="testimonial-rating">
+                        {% for i in range(testimonial.rating or 5) %}
+                        <span class="star">★</span>
+                        {% endfor %}
+                    </div>
+                    <p class="testimonial-content">"{{ testimonial.content }}"</p>
+                    <div class="testimonial-author">
+                        <h4>{{ testimonial.name }}</h4>
+                        {% if testimonial.position %}
+                        <p class="position">{{ testimonial.position }}{% if testimonial.company %} at {{ testimonial.company }}{% endif %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Duplicate testimonials for seamless scrolling -->
+                {% for testimonial in testimonials %}
+                <div class="testimonial">
+                    <img src="{{ testimonial.avatar_url or 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face' }}" 
+                         alt="{{ testimonial.name }}">
+                    <div class="testimonial-rating">
+                        {% for i in range(testimonial.rating or 5) %}
+                        <span class="star">★</span>
+                        {% endfor %}
+                    </div>
+                    <p class="testimonial-content">"{{ testimonial.content }}"</p>
+                    <div class="testimonial-author">
+                        <h4>{{ testimonial.name }}</h4>
+                        {% if testimonial.position %}
+                        <p class="position">{{ testimonial.position }}{% if testimonial.company %} at {{ testimonial.company }}{% endif %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </section>
