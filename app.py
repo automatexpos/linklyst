@@ -169,6 +169,16 @@ def normalize_url(url):
         url = 'https://' + url
     return url
 
+def truncate_title(title, max_length=500):
+    """Truncate title to max_length characters, adding ellipsis if needed"""
+    if not title:
+        return title
+    title = title.strip()
+    if len(title) <= max_length:
+        return title
+    # Truncate and add ellipsis
+    return title[:max_length-3] + "..."
+
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -735,7 +745,7 @@ def add_link_to_subcategory(subcategory_id):
     if not subcategory_res.data:
         abort(404)
     
-    title = request.form.get("title","").strip()
+    title = truncate_title(request.form.get("title","").strip())
     url = request.form.get("url","").strip()
     description = request.form.get("description","").strip()
     image_url = request.form.get("image_url","").strip()
@@ -788,7 +798,7 @@ def add_link_to_category(category_id):
     if not category_res.data:
         abort(404)
     
-    title = request.form.get("title","").strip()
+    title = truncate_title(request.form.get("title","").strip())
     url = request.form.get("url","").strip()
     description = request.form.get("description","").strip()
     image_url = request.form.get("image_url","").strip()
@@ -917,7 +927,7 @@ def edit_link(link_id):
     link = link_res.data[0]
     if request.method == "GET":
         return render_template("edit_link.html", link=link)
-    title = request.form.get("title","").strip()
+    title = truncate_title(request.form.get("title","").strip())
     url = request.form.get("url","").strip()
     is_public = bool(request.form.get("is_public"))
     
@@ -1078,6 +1088,17 @@ def edit_profile():
     bio = request.form.get("bio","").strip()
     avatar_url = request.form.get("avatar_url","").strip()
     theme = request.form.get("theme","default").strip()
+    layout_theme = request.form.get("layout_theme","grid").strip()
+    
+    # Validate theme
+    valid_themes = ['default', 'dark', 'light', 'colorful', 'minimal']
+    if theme not in valid_themes:
+        theme = 'default'
+    
+    # Validate layout theme
+    valid_layout_themes = ['grid', 'list', 'cards', 'minimal-list', 'instagram']
+    if layout_theme not in valid_layout_themes:
+        layout_theme = 'grid'
     
     # Handle avatar file upload
     if 'avatar_file' in request.files:
@@ -1103,7 +1124,8 @@ def edit_profile():
         "display_name": display_name, 
         "bio": bio, 
         "avatar_url": avatar_url, 
-        "theme": theme
+        "theme": theme,
+        "layout_theme": layout_theme
     }).eq("user_id", u["id"]).execute()
     
     flash("Profile updated", "success")
@@ -1290,19 +1312,19 @@ def detect_link_info():
         # Try Open Graph title first
         og_title = soup.find("meta", property="og:title")
         if og_title and og_title.get("content"):
-            title = og_title["content"].strip()
+            title = truncate_title(og_title["content"].strip())
         
         # Fallback to regular title tag
         if not title:
             title_tag = soup.find("title")
             if title_tag:
-                title = title_tag.text.strip()
+                title = truncate_title(title_tag.text.strip())
         
         # Fallback to h1
         if not title:
             h1_tag = soup.find("h1")
             if h1_tag:
-                title = h1_tag.text.strip()
+                title = truncate_title(h1_tag.text.strip())
         
         # Extract product image
         image_url = None
@@ -1862,6 +1884,18 @@ def webmanifest():
 @app.route("/favicon.ico")
 def favicon():
     """Serve favicon.ico for browsers that request it"""
+    from flask import send_from_directory
+    return send_from_directory(app.static_folder, 'favicon.ico', mimetype='image/x-icon')
+
+@app.route("/apple-touch-icon.png")
+def apple_touch_icon():
+    """Serve apple-touch-icon.png for iOS devices"""
+    from flask import send_from_directory
+    return send_from_directory(app.static_folder, 'apple-touch-icon.png', mimetype='image/png')
+
+@app.route("/favicon.png")
+def favicon_png():
+    """Serve favicon.png for browsers that prefer PNG format"""
     from flask import send_from_directory
     return send_from_directory(app.static_folder, 'favicon.png', mimetype='image/png')
 

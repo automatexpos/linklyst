@@ -1,6 +1,10 @@
 User-agent: *
 Allow: /
 Allow: /u/
+Allow: /favicon.ico
+Allow: /static/favicon*
+Allow: /static/apple-touch-icon.png
+Allow: /static/site.webmanifest
 Disallow: /dashboard
 Disallow: /api/
 Disallow: /auth/

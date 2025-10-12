@@ -70,7 +70,7 @@
     <nav class="topbar">
         <div class="container">
             <a href="/" class="logo">
-                <strong>Linklyst</strong>
+                <strong>Linklyst Space</strong>
             </a>
             <div class="nav-links">
                 <a href="/" class="nav-link">Home</a>
@@ -81,7 +81,7 @@
     </nav>
     
     <main class="container">
-        <div class="profile-card {{ profile.theme or 'default' }}">
+        <div class="profile-card {{ profile.theme or 'default' }} layout-{{ profile.layout_theme or 'grid' }}">
             {% if profile.avatar_url %}
                 <img class="avatar" src="{{ profile.avatar_url }}" alt="{{ profile.display_name or user.username }}'s avatar" loading="lazy">
             {% endif %}
@@ -99,8 +99,7 @@
                         {% for category in categories %}
                             <div class="public-category-card" 
                                  data-category-id="{{ category.id }}" 
-                                 onclick="toggleCategory({{ category.id }})"
-                                 style="border-color: {{ category.color }}">
+                                 onclick="toggleCategory({{ category.id }})">
                                 <div class="public-category-content">
                                     <div class="category-icon" style="background-color: {{ category.color }}20; color: {{ category.color }}">
                                         {% if category.icon_url %}
@@ -109,11 +108,13 @@
                                             <i class="icon">📦</i>
                                         {% endif %}
                                     </div>
-                                    <h3>{{ category.name }}</h3>
-                                    {% if category.description %}
-                                        <p class="category-desc">{{ category.description }}</p>
-                                    {% endif %}
-                                    <span class="expand-indicator">+</span>
+                                    <div class="category-info">
+                                        <h3>{{ category.name }}</h3>
+                                        {% if category.description %}
+                                            <p class="category-desc">{{ category.description }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <span class="expand-indicator">→</span>
                                 </div>
                             </div>
                         {% endfor %}
@@ -171,9 +172,9 @@
         </div>
         
         <!-- Powered by Linklyst -->
-        <div style="text-align: center; margin-top: 40px; padding: 20px; opacity: 0.7;">
-            <p>Powered by <a href="/" style="color: #4CAF50; text-decoration: none;">Linklyst</a> — Create your own link-in-bio page</p>
-        </div>
+        <!-- <div class="powered-by-footer">
+            <p>Powered by <a href="/" class="footer-link">Linklyst</a> — Create your own link-in-bio page</p>
+        </div> -->
     </main>
 
     <script>
@@ -295,10 +296,11 @@
                         <div class="brand-icon" style="background-color: ${subcategory.color}20; color: ${subcategory.color}">
                             ${subcategory.icon_url ? `<img src="${subcategory.icon_url}" alt="${subcategory.name} icon" class="custom-icon" loading="lazy">` : '📁'}
                         </div>
-                        <h4>${subcategory.name}</h4>
-                        ${subcategory.description ? `<p class="brand-desc">${subcategory.description}</p>` : ''}
+                        <div class="brand-info">
+                            <h4>${subcategory.name}</h4>
+                            ${subcategory.description ? `<p class="brand-desc">${subcategory.description}</p>` : ''}
+                        </div>
                         <span class="link-count">${subcategory.link_count || 0} links</span>
-                        <span class="expand-indicator">→</span>
                     </div>
                 `;
                 
@@ -320,8 +322,10 @@
                             `<div class="link-icon"><img src="${link.image_url}" alt="${link.title}" class="link-image" loading="lazy"></div>` : 
                             `<div class="link-icon">🔗</div>`
                         }
-                        <h4>${link.title}</h4>
-                        ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
+                        <div class="link-info">
+                            <h4>${link.title}</h4>
+                            ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
+                        </div>
                     </a>
                 `;
                 
@@ -343,8 +347,10 @@
                             `<div class="link-icon"><img src="${link.image_url}" alt="${link.title}" class="link-image" loading="lazy"></div>` : 
                             `<div class="link-icon">🔗</div>`
                         }
-                        <h4>${link.title}</h4>
-                        ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
+                        <div class="link-info">
+                            <h4>${link.title}</h4>
+                            ${link.description ? `<p class="link-desc">${link.description}</p>` : ''}
+                        </div>
                     </a>
                 `;
                 

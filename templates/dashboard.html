@@ -162,15 +162,182 @@
             </label>
           </details>
         </div>
-        <label>
-          Theme
-          <select name="theme">
-            <option value="default" {% if profile.theme=='default' or not profile.theme %}selected{% endif %}>Default</option>
-            <option value="dark" {% if profile.theme=='dark' %}selected{% endif %}>Dark</option>
-            <option value="light" {% if profile.theme=='light' %}selected{% endif %}>Light</option>
-            <option value="colorful" {% if profile.theme=='colorful' %}selected{% endif %}>Colorful</option>
-          </select>
-        </label>
+        <div class="theme-selector">
+          <label class="theme-label">Choose Theme</label>
+          <div class="theme-grid">
+            <input type="radio" name="theme" value="default" id="theme-default" {% if profile.theme=='default' or not profile.theme %}checked{% endif %}>
+            <label for="theme-default" class="theme-card theme-default">
+              <div class="theme-preview">
+                <div class="preview-header">
+                  <div class="preview-avatar"></div>
+                  <div class="preview-info">
+                    <div class="preview-name"></div>
+                    <div class="preview-bio"></div>
+                  </div>
+                </div>
+                <div class="preview-links">
+                  <div class="preview-link"></div>
+                  <div class="preview-link"></div>
+                </div>
+              </div>
+              <div class="theme-name">Default</div>
+              <div class="theme-description">Clean and professional</div>
+            </label>
+
+            <input type="radio" name="theme" value="dark" id="theme-dark" {% if profile.theme=='dark' %}checked{% endif %}>
+            <label for="theme-dark" class="theme-card theme-dark">
+              <div class="theme-preview">
+                <div class="preview-header">
+                  <div class="preview-avatar"></div>
+                  <div class="preview-info">
+                    <div class="preview-name"></div>
+                    <div class="preview-bio"></div>
+                  </div>
+                </div>
+                <div class="preview-links">
+                  <div class="preview-link"></div>
+                  <div class="preview-link"></div>
+                </div>
+              </div>
+              <div class="theme-name">Dark</div>
+              <div class="theme-description">Sleek dark mode</div>
+            </label>
+
+            <input type="radio" name="theme" value="light" id="theme-light" {% if profile.theme=='light' %}checked{% endif %}>
+            <label for="theme-light" class="theme-card theme-light">
+              <div class="theme-preview">
+                <div class="preview-header">
+                  <div class="preview-avatar"></div>
+                  <div class="preview-info">
+                    <div class="preview-name"></div>
+                    <div class="preview-bio"></div>
+                  </div>
+                </div>
+                <div class="preview-links">
+                  <div class="preview-link"></div>
+                  <div class="preview-link"></div>
+                </div>
+              </div>
+              <div class="theme-name">Light</div>
+              <div class="theme-description">Bright and airy</div>
+            </label>
+
+            <input type="radio" name="theme" value="colorful" id="theme-colorful" {% if profile.theme=='colorful' %}checked{% endif %}>
+            <label for="theme-colorful" class="theme-card theme-colorful">
+              <div class="theme-preview">
+                <div class="preview-header">
+                  <div class="preview-avatar"></div>
+                  <div class="preview-info">
+                    <div class="preview-name"></div>
+                    <div class="preview-bio"></div>
+                  </div>
+                </div>
+                <div class="preview-links">
+                  <div class="preview-link"></div>
+                  <div class="preview-link"></div>
+                </div>
+              </div>
+              <div class="theme-name">Colorful</div>
+              <div class="theme-description">Vibrant gradient</div>
+            </label>
+
+            <input type="radio" name="theme" value="minimal" id="theme-minimal" {% if profile.theme=='minimal' %}checked{% endif %}>
+            <label for="theme-minimal" class="theme-card theme-minimal">
+              <div class="theme-preview">
+                <div class="preview-header">
+                  <div class="preview-avatar"></div>
+                  <div class="preview-info">
+                    <div class="preview-name"></div>
+                    <div class="preview-bio"></div>
+                  </div>
+                </div>
+                <div class="preview-links">
+                  <div class="preview-link"></div>
+                  <div class="preview-link"></div>
+                </div>
+              </div>
+              <div class="theme-name">Minimal</div>
+              <div class="theme-description">Ultra-clean borders</div>
+            </label>
+          </div>
+        </div>
+
+        <div class="layout-theme-selector">
+          <label class="theme-label">Choose Layout</label>
+          <div class="layout-theme-grid">
+            <input type="radio" name="layout_theme" value="grid" id="layout-grid" {% if profile.layout_theme=='grid' or not profile.layout_theme %}checked{% endif %}>
+            <label for="layout-grid" class="layout-card layout-grid">
+              <div class="layout-preview">
+                <div class="layout-demo grid-demo">
+                  <div class="demo-item"></div>
+                  <div class="demo-item"></div>
+                  <div class="demo-item"></div>
+                  <div class="demo-item"></div>
+                  <div class="demo-item"></div>
+                  <div class="demo-item"></div>
+                </div>
+              </div>
+              <div class="layout-name">Grid</div>
+              <div class="layout-description">3-column grid</div>
+            </label>
+
+            <input type="radio" name="layout_theme" value="list" id="layout-list" {% if profile.layout_theme=='list' %}checked{% endif %}>
+            <label for="layout-list" class="layout-card layout-list">
+              <div class="layout-preview">
+                <div class="layout-demo list-demo">
+                  <div class="demo-item-list"></div>
+                  <div class="demo-item-list"></div>
+                  <div class="demo-item-list"></div>
+                  <div class="demo-item-list"></div>
+                </div>
+              </div>
+              <div class="layout-name">List</div>
+              <div class="layout-description">Vertical list</div>
+            </label>
+
+            <input type="radio" name="layout_theme" value="cards" id="layout-cards" {% if profile.layout_theme=='cards' %}checked{% endif %}>
+            <label for="layout-cards" class="layout-card layout-cards">
+              <div class="layout-preview">
+                <div class="layout-demo cards-demo">
+                  <div class="demo-card"></div>
+                  <div class="demo-card"></div>
+                  <div class="demo-card"></div>
+                </div>
+              </div>
+              <div class="layout-name">Cards</div>
+              <div class="layout-description">Large cards</div>
+            </label>
+
+            <input type="radio" name="layout_theme" value="minimal-list" id="layout-minimal-list" {% if profile.layout_theme=='minimal-list' %}checked{% endif %}>
+            <label for="layout-minimal-list" class="layout-card layout-minimal-list">
+              <div class="layout-preview">
+                <div class="layout-demo minimal-list-demo">
+                  <div class="demo-minimal-item"></div>
+                  <div class="demo-minimal-item"></div>
+                  <div class="demo-minimal-item"></div>
+                  <div class="demo-minimal-item"></div>
+                </div>
+              </div>
+              <div class="layout-name">Minimal List</div>
+              <div class="layout-description">Clean rows</div>
+            </label>
+
+            <input type="radio" name="layout_theme" value="instagram" id="layout-instagram" {% if profile.layout_theme=='instagram' %}checked{% endif %}>
+            <label for="layout-instagram" class="layout-card layout-instagram">
+              <div class="layout-preview">
+                <div class="layout-demo instagram-demo">
+                  <div class="demo-insta-item"></div>
+                  <div class="demo-insta-item"></div>
+                  <div class="demo-insta-item"></div>
+                  <div class="demo-insta-item"></div>
+                </div>
+              </div>
+              <div class="layout-name">Instagram</div>
+              <div class="layout-description">Social style</div>
+            </label>
+          </div>
+        </div>
+
         <div class="form-actions">
           <button class="btn" type="submit">Save Profile</button>
           <button type="button" class="btn btn-secondary" onclick="closeModal('profile-modal')">Cancel</button>
