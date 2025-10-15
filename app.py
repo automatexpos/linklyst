@@ -53,6 +53,23 @@ app.secret_key = APP_SECRET
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# SEO-friendly headers for better performance and crawling
+@app.after_request
+def add_seo_headers(response):
+    """Add SEO-friendly headers for better performance"""
+    # Cache blog pages for better performance (1 hour)
+    if request.endpoint and 'blog' in request.endpoint:
+        response.headers['Cache-Control'] = 'public, max-age=3600'
+    # Cache static files for 1 week
+    elif request.endpoint == 'static':
+        response.headers['Cache-Control'] = 'public, max-age=604800'
+    
+    # SEO-friendly security headers
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    return response
+
 # Domain redirection for production - DISABLED TO FIX REDIRECT LOOP
 # @app.before_request
 # def enforce_domain():

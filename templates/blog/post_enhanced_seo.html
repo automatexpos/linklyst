@@ -9,12 +9,24 @@
 {% block head %}
 <meta name="keywords" content="{{ post.meta_keywords }}">
 <meta name="robots" content="{{ post.robots_meta or 'index,follow' }}">
+<meta name="author" content="{{ post.author_name or 'LinkLyst Team' }}">
+<meta name="article:published_time" content="{{ post.published_at.isoformat() if post.published_at else '' }}">
+<meta name="article:modified_time" content="{{ post.updated_at.isoformat() if post.updated_at else post.published_at.isoformat() }}">
 
+<!-- Open Graph Meta Tags -->
 <meta property="og:title" content="{{ post.title }}">
 <meta property="og:description" content="{{ post.excerpt }}">
 <meta property="og:type" content="article">
 <meta property="og:url" content="{{ request.url_root }}blog/{{ post.slug }}">
 <meta property="og:image" content="{{ post.featured_image or url_for('static', filename='images/og-image.svg') }}">
+<meta property="og:site_name" content="LinkLyst Blog">
+<meta property="article:author" content="{{ post.author_name or 'LinkLyst Team' }}">
+<meta property="article:published_time" content="{{ post.published_at.isoformat() if post.published_at else '' }}">
+{% if post.tags %}
+  {% for tag in post.tags.split(',') %}
+<meta property="article:tag" content="{{ tag.strip() }}">
+  {% endfor %}
+{% endif %}
 
 <!-- Twitter Card Meta Tags -->
 <meta name="twitter:card" content="summary_large_image">
@@ -22,34 +34,38 @@
 <meta name="twitter:description" content="{{ post.excerpt }}">
 <meta name="twitter:image" content="{{ post.featured_image or url_for('static', filename='images/og-image.svg') }}">
 
-<!-- JSON-LD Schema Markup for Rich Results -->
+<!-- JSON-LD Schema Markup for Article -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": {{ post.title|tojson }},
-  "description": {{ (post.excerpt or post.meta_description or post.title)|tojson }},
-  "image": {{ (post.featured_image or (request.url_root + 'static/images/og-image.svg'))|tojson }},
+  "headline": "{{ post.title }}",
+  "description": "{{ post.excerpt }}",
+  "image": "{{ post.featured_image or url_for('static', filename='images/og-image.svg') }}",
   "author": {
     "@type": "Person",
-    "name": {{ (post.author_name or 'LinkLyst Team')|tojson }}
+    "name": "{{ post.author_name or 'LinkLyst Team' }}"
   },
   "publisher": {
     "@type": "Organization",
     "name": "LinkLyst",
     "logo": {
       "@type": "ImageObject",
-      "url": {{ (request.url_root + 'static/images/logo.png')|tojson }}
+      "url": "{{ url_for('static', filename='images/logo.png') }}"
     }
   },
-  "datePublished": {{ (post.published_at.isoformat() if post.published_at else '')|tojson }},
-  "dateModified": {{ ((post.updated_at or post.published_at).isoformat() if (post.updated_at or post.published_at) else '')|tojson }},
+  "datePublished": "{{ post.published_at.isoformat() if post.published_at else '' }}",
+  "dateModified": "{{ post.updated_at.isoformat() if post.updated_at else post.published_at.isoformat() }}",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": {{ (request.url_root + 'blog/' + post.slug)|tojson }}
+    "@id": "{{ request.url_root }}blog/{{ post.slug }}"
   },
-  "url": {{ (request.url_root + 'blog/' + post.slug)|tojson }}{% if post.meta_keywords %},
-  "keywords": {{ post.meta_keywords|tojson }}{% endif %}
+  "url": "{{ request.url_root }}blog/{{ post.slug }}",
+  {% if post.tags %}
+  "keywords": "{{ post.tags }}",
+  {% endif %}
+  "wordCount": {{ post.content|length // 5 }},
+  "articleBody": {{ post.content|striptags|tojson }}
 }
 </script>
 
@@ -63,25 +79,31 @@
       "@type": "ListItem",
       "position": 1,
       "name": "Home",
-      "item": {{ request.url_root|tojson }}
+      "item": "{{ request.url_root }}"
     },
     {
       "@type": "ListItem",
       "position": 2,
       "name": "Blog",
-      "item": {{ (request.url_root + 'blog')|tojson }}
+      "item": "{{ request.url_root }}blog"
     },
     {
       "@type": "ListItem",
       "position": 3,
-      "name": {{ post.title|tojson }},
-      "item": {{ (request.url_root + 'blog/' + post.slug)|tojson }}
+      "name": "{{ post.title }}",
+      "item": "{{ request.url_root }}blog/{{ post.slug }}"
     }
   ]
 }
 </script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='blog.css') }}?v={{ range(100000, 999999) | random }}&h={{ request.host | replace('.', '-') }}" />
+
+<!-- Preload critical resources -->
+{% if post.featured_image %}
+<link rel="preload" as="image" href="{{ post.featured_image }}">
+{% endif %}
+
 <script>
 // Force blog styling on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -111,6 +133,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% block content %}
 <div class="blog-page-wrapper" style="background: #fafafa !important; background-image: none !important; min-height: 100vh !important;">
+
+<!-- Breadcrumb Navigation -->
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li aria-current="page">{{ post.title }}</li>
+    </ol>
+</nav>
+
 <nav class="post-nav">
     <div class="nav-content">
         <a href="/blog" class="back-link">← Back to Blog</a>
@@ -144,7 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
              alt="{{ post.title }}" 
              class="featured-image" 
              itemprop="image"
-             loading="lazy">
+             loading="lazy"
+             width="800"
+             height="400">
         {% endif %}
 
         <div class="post-content" itemprop="articleBody">
@@ -160,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {% endif %}
 
         <!-- Hidden meta for schema -->
+        <meta itemprop="wordCount" content="{{ post.content|length // 5 }}">
         <meta itemprop="url" content="{{ request.url_root }}blog/{{ post.slug }}">
         {% if post.updated_at %}
         <meta itemprop="dateModified" content="{{ post.updated_at.isoformat() }}">
@@ -168,10 +203,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <!-- Author Info -->
     {% if post.author_name %}
-    <div class="author-info">
-        <div class="author-name">{{ post.author_name }}</div>
+    <div class="author-info" itemscope itemtype="https://schema.org/Person">
+        <div class="author-name" itemprop="name">{{ post.author_name }}</div>
         {% if post.author_bio %}
-        <p class="author-bio">{{ post.author_bio }}</p>
+        <p class="author-bio" itemprop="description">{{ post.author_bio }}</p>
         {% endif %}
     </div>
     {% endif %}
@@ -179,19 +214,38 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Related Posts -->
     {% if related_posts %}
     <section class="related-posts">
-        <h2 class="related-title">Related Posts</h2>
+        <h2>Related Posts</h2>
         <div class="related-grid">
-            {% for related_post in related_posts %}
+            {% for related in related_posts %}
             <article class="related-post">
-                <h3 class="related-post-title">
-                    <a href="/blog/{{ related_post.slug }}">{{ related_post.title }}</a>
-                </h3>
-                <p class="related-post-excerpt">{{ related_post.excerpt|truncate(80) }}</p>
+                <h3><a href="/blog/{{ related.slug }}">{{ related.title }}</a></h3>
+                <p>{{ related.excerpt }}</p>
+                <time datetime="{{ related.published_at.isoformat() if related.published_at else '' }}">
+                    {{ related.published_at.strftime('%B %d, %Y') if related.published_at else '' }}
+                </time>
             </article>
             {% endfor %}
         </div>
     </section>
     {% endif %}
+
+    <!-- Navigation to next/previous posts -->
+    <nav class="post-navigation" aria-label="Post navigation">
+        <!-- You can add prev/next post logic here -->
+    </nav>
 </div>
 </div>
+
+<!-- FAQ Schema (if you have FAQ sections in posts) -->
+{% if post.content and 'FAQ' in post.content %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    // Add FAQ items here based on your content structure
+  ]
+}
+</script>
+{% endif %}
 {% endblock %}
