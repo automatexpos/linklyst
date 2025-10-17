@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ - Frequently Asked Questions | Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+    <!-- Hero Section -->
+    <div style="text-align: center; margin-bottom: 60px;">
+        <h1 style="font-size: 3rem; color: #1a1a1a; margin-bottom: 20px;">Frequently Asked Questions</h1>
+        <p style="font-size: 1.2rem; color: #666; max-width: 600px; margin: 0 auto;">
+            Find answers to common questions about Linklyst Space. Can't find what you're looking for? 
+            <button onclick="openSupportModal()" style="color: #667eea; background: none; border: none; cursor: pointer; text-decoration: underline;">Contact our support team</button>.
+        </p>
+    </div>
+
+    <!-- FAQ Sections -->
+    <div>
+        <!-- General Questions -->
+        <section style="margin-bottom: 50px;">
+            <h2 style="font-size: 1.8rem; color: #1a1a1a; margin-bottom: 30px; border-bottom: 3px solid #667eea; padding-bottom: 10px;">General Questions</h2>
+            
+            <div>
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">What is Linklyst Space?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Linklyst Space is a powerful link-in-bio platform that helps creators, businesses, and professionals showcase all their important links in one beautiful, customizable page. Think of it as your personal landing page that connects your audience to everything you do online.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">How is Linklyst different from other link-in-bio tools?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Linklyst focuses on beautiful design, powerful customization, and detailed analytics. We offer advanced features like link scheduling, password protection, custom themes, and comprehensive analytics that help you understand your audience better.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">Is Linklyst really free?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Yes! Our free plan includes up to 5 links, basic customization, and essential analytics. You can use Linklyst forever without paying a dime. When you're ready for more advanced features, you can upgrade to Pro.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Account & Setup -->
+        <section style="margin-bottom: 50px;">
+            <h2 style="font-size: 1.8rem; color: #1a1a1a; margin-bottom: 30px; border-bottom: 3px solid #667eea; padding-bottom: 10px;">Account & Setup</h2>
+            
+            <div>
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">How do I get started?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Simply sign up for a free account, choose your username, and start adding your links. You can customize your page design, add a bio, upload a profile picture, and organize your links however you like.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">Can I change my username later?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Yes, you can change your username anytime from your profile settings. Keep in mind that changing your username will also change your Linklyst URL, so update any places where you've shared your link.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">How do I delete my account?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">You can delete your account from the Account Settings page. Once deleted, your data will be permanently removed and cannot be recovered. Make sure to export any important data before deletion.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features & Customization -->
+        <section style="margin-bottom: 50px;">
+            <h2 style="font-size: 1.8rem; color: #1a1a1a; margin-bottom: 30px; border-bottom: 3px solid #667eea; padding-bottom: 10px;">Features & Customization</h2>
+            
+            <div>
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">How many links can I add?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Free accounts can add up to 5 links. Pro accounts have unlimited links. You can organize your links into categories and subcategories for better organization.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">Can I customize the appearance of my page?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Absolutely! You can customize colors, fonts, backgrounds, button styles, and layouts. Pro users get access to premium themes and advanced customization options including custom CSS.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">Can I schedule links to appear at specific times?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Yes! Pro users can schedule links to automatically appear and disappear at specific dates and times. This is perfect for limited-time offers, events, or seasonal content.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">Can I password protect my page?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Yes, Pro users can add password protection to their entire page or individual links. This is useful for exclusive content, private communities, or VIP access.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics & Performance -->
+        <section style="margin-bottom: 50px;">
+            <h2 style="font-size: 1.8rem; color: #1a1a1a; margin-bottom: 30px; border-bottom: 3px solid #667eea; padding-bottom: 10px;">Analytics & Performance</h2>
+            
+            <div>
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">What analytics do you provide?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">We provide detailed click analytics including total clicks, unique visitors, click sources, geographic data, device information, and time-based trends. Pro users get advanced analytics with exportable reports.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">Can I export my analytics data?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Pro users can export their analytics data as CSV files for further analysis. This includes click data, visitor information, and performance metrics over any time period.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">How often is analytics data updated?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Analytics data is updated in real-time. You can see your latest clicks and visitor data immediately after they occur.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Billing & Subscriptions -->
+        <section style="margin-bottom: 50px;">
+            <h2 style="font-size: 1.8rem; color: #1a1a1a; margin-bottom: 30px; border-bottom: 3px solid #667eea; padding-bottom: 10px;">Billing & Subscriptions</h2>
+            
+            <div>
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">How much does Pro cost?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Pro costs $9/month and includes unlimited links, advanced customization, detailed analytics, priority support, and all premium features. We also offer a 7-day free trial.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">Can I cancel anytime?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Yes! You can cancel your subscription anytime from your billing settings. Your account will remain Pro until the end of your billing period, then automatically switch to the free plan.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">What payment methods do you accept?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">We accept all major credit cards (Visa, MasterCard, American Express) and PayPal. All payments are processed securely through industry-standard encryption.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Support -->
+        <section style="margin-bottom: 50px;">
+            <h2 style="font-size: 1.8rem; color: #1a1a1a; margin-bottom: 30px; border-bottom: 3px solid #667eea; padding-bottom: 10px;">Technical Support</h2>
+            
+            <div>
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">How do I get support?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">You can contact our support team through our built-in support system. <button onclick="openSupportModal()" style="color: #667eea; background: none; border: none; cursor: pointer; text-decoration: underline;">Click here to submit a request</button>. Pro users get priority support with faster response times.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">My links aren't working properly. What should I do?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">First, check that your links are properly formatted (include https://). If you're still having issues, try clearing your browser cache or testing in an incognito window. If problems persist, contact our support team.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">Is my data secure?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Yes! We use industry-standard security measures including SSL encryption, secure data centers, and regular security audits. Your data is backed up regularly and stored securely.</p>
+                </div>
+
+                <div style="border: 1px solid #e5e7eb; border-radius: 10px; padding: 25px; margin-bottom: 20px;">
+                    <h3 style="color: #1a1a1a; margin-bottom: 15px; font-size: 1.2rem;">Do you have an API?</h3>
+                    <p style="color: #666; margin: 0; line-height: 1.6;">Yes! Pro users have access to our REST API that allows you to programmatically manage your links, retrieve analytics data, and integrate Linklyst with other tools and services.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Contact CTA -->
+    <div style="background: #f9fafb; padding: 40px; border-radius: 20px; text-align: center; margin-top: 60px;">
+        <h2 style="color: #1a1a1a; margin-bottom: 20px; font-size: 1.8rem;">Still have questions?</h2>
+        <p style="color: #666; margin-bottom: 30px; font-size: 1.1rem;">Our support team is here to help you succeed with Linklyst Space.</p>
+        <button onclick="openSupportModal()" style="background: #667eea; color: white; padding: 15px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; font-size: 1.1rem;">Contact Support</button>
+    </div>
+</div>
+{% endblock %}

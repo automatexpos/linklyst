@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Community - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 2.5rem; color: #1a1a1a; margin-bottom: 20px;">Join Our Community</h1>
+        <p style="font-size: 1.2rem; color: #666;">
+            Connect with other creators, share tips, and grow together.
+        </p>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 50px 40px; border-radius: 16px; text-align: center; color: white; margin-bottom: 50px;">
+        <h2 style="margin-bottom: 20px;">Coming Soon: Linklyst Community</h2>
+        <p style="margin-bottom: 30px; opacity: 0.9;">We're building an amazing community space where creators can connect, share insights, and learn from each other.</p>
+        <button onclick="openSupportModal()" style="background: white; color: #667eea; padding: 15px 30px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">Get Notified When It Launches</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">💬</div>
+            <h3 style="margin: 0 0 15px 0; color: #1a1a1a;">Discussions</h3>
+            <p style="color: #666; margin: 0;">Share strategies, ask questions, and get feedback from fellow creators.</p>
+        </div>
+
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">🎯</div>
+            <h3 style="margin: 0 0 15px 0; color: #1a1a1a;">Success Stories</h3>
+            <p style="color: #666; margin: 0;">Learn from real creators who've grown their audience using Linklyst.</p>
+        </div>
+
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">🚀</div>
+            <h3 style="margin: 0 0 15px 0; color: #1a1a1a;">Feature Requests</h3>
+            <p style="color: #666; margin: 0;">Suggest new features and vote on what should be built next.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

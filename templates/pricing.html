@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+    <!-- Hero Section -->
+    <div style="text-align: center; margin-bottom: 60px;">
+        <h1 style="font-size: 3rem; color: #1a1a1a; margin-bottom: 20px;">Simple, Transparent Pricing</h1>
+        <p style="font-size: 1.3rem; color: #666; max-width: 600px; margin: 0 auto;">
+            Start free, upgrade when you're ready. No hidden fees, cancel anytime.
+        </p>
+    </div>
+
+    <!-- Pricing Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 60px;">
+        <!-- Free Plan -->
+        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 20px; padding: 40px 30px; text-align: center; position: relative;">
+            <h3 style="font-size: 1.5rem; color: #1a1a1a; margin-bottom: 10px;">Free</h3>
+            <div style="font-size: 3rem; font-weight: 800; color: #1a1a1a; margin-bottom: 20px;">$0</div>
+            <p style="color: #666; margin-bottom: 30px;">Perfect for getting started</p>
+            
+            <ul style="text-align: left; list-style: none; padding: 0; margin-bottom: 40px;">
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Up to 5 links
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Basic customization
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Basic analytics
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Mobile responsive
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center; color: #9ca3af;">
+                    <span style="color: #ef4444; margin-right: 10px; font-weight: bold;">✗</span>
+                    Advanced analytics
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center; color: #9ca3af;">
+                    <span style="color: #ef4444; margin-right: 10px; font-weight: bold;">✗</span>
+                    Custom themes
+                </li>
+            </ul>
+            
+            <a href="{{ url_for('register') }}" style="display: block; background: #f3f4f6; color: #374151; padding: 15px 25px; border-radius: 10px; text-decoration: none; font-weight: 600;">Get Started Free</a>
+        </div>
+
+        <!-- Pro Plan -->
+        <div style="background: white; border: 3px solid #667eea; border-radius: 20px; padding: 40px 30px; text-align: center; position: relative; transform: scale(1.05);">
+            <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #667eea; color: white; padding: 8px 24px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">Most Popular</div>
+            
+            <h3 style="font-size: 1.5rem; color: #1a1a1a; margin-bottom: 10px;">Pro</h3>
+            <div style="display: flex; align-items: baseline; justify-content: center; margin-bottom: 20px;">
+                <span style="font-size: 3rem; font-weight: 800; color: #1a1a1a;">$5</span>
+                <span style="color: #666; margin-left: 8px;">/month</span>
+            </div>
+            <p style="color: #666; margin-bottom: 30px;">Everything you need to grow</p>
+            
+            <ul style="text-align: left; list-style: none; padding: 0; margin-bottom: 40px;">
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Unlimited links
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Advanced customization
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Detailed analytics
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Custom themes & templates
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Priority support
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    API access
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Export analytics
+                </li>
+            </ul>
+            
+            <a href="{{ url_for('register') }}" style="display: block; background: #667eea; color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none; font-weight: 600;">Start 7-Day Free Trial</a>
+        </div>
+
+        <!-- Enterprise Plan -->
+        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 20px; padding: 40px 30px; text-align: center; position: relative;">
+            <h3 style="font-size: 1.5rem; color: #1a1a1a; margin-bottom: 10px;">Enterprise</h3>
+            <div style="font-size: 2.5rem; font-weight: 800; color: #1a1a1a; margin-bottom: 20px;">Custom</div>
+            <p style="color: #666; margin-bottom: 30px;">For teams and agencies</p>
+            
+            <ul style="text-align: left; list-style: none; padding: 0; margin-bottom: 40px;">
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Everything in Pro
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Multiple team members
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    White-label solutions
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Custom integrations
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    Dedicated support
+                </li>
+                <li style="padding: 8px 0; display: flex; align-items: center;">
+                    <span style="color: #22c55e; margin-right: 10px; font-weight: bold;">✓</span>
+                    SLA guarantee
+                </li>
+            </ul>
+            
+            <button onclick="openSupportModal()" style="display: block; width: 100%; background: #f3f4f6; color: #374151; padding: 15px 25px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600;">Contact Sales</button>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div style="background: #f9fafb; padding: 50px 40px; border-radius: 20px;">
+        <h2 style="text-align: center; margin-bottom: 40px; color: #1a1a1a; font-size: 2rem;">Pricing FAQ</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+            <div>
+                <h4 style="color: #1a1a1a; margin-bottom: 10px;">Can I change plans anytime?</h4>
+                <p style="color: #666; margin: 0;">Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.</p>
+            </div>
+            
+            <div>
+                <h4 style="color: #1a1a1a; margin-bottom: 10px;">Is there a setup fee?</h4>
+                <p style="color: #666; margin: 0;">No setup fees, no hidden costs. You only pay for your monthly subscription.</p>
+            </div>
+            
+            <div>
+                <h4 style="color: #1a1a1a; margin-bottom: 10px;">What happens if I cancel?</h4>
+                <p style="color: #666; margin: 0;">Your account will remain active until the end of your billing period, then switch to the free plan.</p>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div style="text-align: center; margin-top: 60px;">
+        <h2 style="font-size: 2.5rem; color: #1a1a1a; margin-bottom: 20px;">Ready to Get Started?</h2>
+        <p style="font-size: 1.2rem; color: #666; margin-bottom: 40px;">Join thousands of creators using Linklyst to grow their audience.</p>
+        <a href="{{ url_for('register') }}" style="background: #667eea; color: white; padding: 18px 36px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 1.1rem;">Start Your Free Trial</a>
+    </div>
+</div>
+{% endblock %}

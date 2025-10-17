@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 2.5rem; color: #1a1a1a; margin-bottom: 20px;">Powerful Analytics</h1>
+        <p style="font-size: 1.2rem; color: #666; max-width: 600px; margin: 0 auto;">
+            Get deep insights into your audience and link performance with our comprehensive analytics dashboard.
+        </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px; margin-bottom: 50px;">
+        <div>
+            <div style="background: #f8f9ff; padding: 30px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="width: 60px; height: 60px; background: #667eea; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <span style="font-size: 24px;">📊</span>
+                </div>
+                <h3 style="margin: 0 0 15px 0; color: #1a1a1a;">Real-Time Tracking</h3>
+                <p style="color: #666; margin: 0;">Monitor clicks, views, and engagement as they happen with live analytics updates.</p>
+            </div>
+        </div>
+
+        <div>
+            <div style="background: #f8f9ff; padding: 30px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="width: 60px; height: 60px; background: #667eea; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <span style="font-size: 24px;">🌍</span>
+                </div>
+                <h3 style="margin: 0 0 15px 0; color: #1a1a1a;">Geographic Insights</h3>
+                <p style="color: #666; margin: 0;">See where your audience is coming from with detailed geographic breakdowns.</p>
+            </div>
+        </div>
+
+        <div>
+            <div style="background: #f8f9ff; padding: 30px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="width: 60px; height: 60px; background: #667eea; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <span style="font-size: 24px;">📈</span>
+                </div>
+                <h3 style="margin: 0 0 15px 0; color: #1a1a1a;">Performance Trends</h3>
+                <p style="color: #666; margin: 0;">Track your growth over time with detailed performance analytics and trends.</p>
+            </div>
+        </div>
+
+        <div>
+            <div style="background: #f8f9ff; padding: 30px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="width: 60px; height: 60px; background: #667eea; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <span style="font-size: 24px;">📋</span>
+                </div>
+                <h3 style="margin: 0 0 15px 0; color: #1a1a1a;">Export Reports</h3>
+                <p style="color: #666; margin: 0;">Download comprehensive reports and share insights with your team.</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 50px 40px; border-radius: 16px; text-align: center; color: white;">
+        <h2 style="margin-bottom: 20px;">Ready to Track Your Success?</h2>
+        <p style="margin-bottom: 30px; opacity: 0.9;">Join thousands of creators using our analytics to grow their audience.</p>
+        <a href="{{ url_for('register') }}" style="background: white; color: #667eea; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: 600;">Start Free Trial</a>
+    </div>
+</div>
+{% endblock %}

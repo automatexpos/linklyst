@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}API Keys - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+    <div style="margin-bottom: 40px;">
+        <h1 style="font-size: 2rem; color: #1a1a1a; margin-bottom: 10px;">API Keys</h1>
+        <p style="color: #666; margin: 0;">Manage your API keys for integrations and custom applications.</p>
+    </div>
+
+    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+        <div style="display: flex; align-items: center;">
+            <span style="font-size: 1.2rem; margin-right: 10px;">⚠️</span>
+            <div>
+                <h4 style="margin: 0 0 5px 0; color: #92400e;">Pro Feature</h4>
+                <p style="margin: 0; color: #92400e; font-size: 0.9rem;">API access is available for Pro subscribers only.</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 30px;">
+        <h3 style="margin: 0 0 20px 0; color: #1a1a1a;">Generate API Key</h3>
+        <p style="color: #666; margin: 0 0 20px 0;">Create API keys to integrate Linklyst with your applications and workflows.</p>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Key Name</label>
+            <input type="text" placeholder="e.g., My Website Integration" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;" disabled>
+        </div>
+
+        <button style="background: #d1d5db; color: #9ca3af; padding: 12px 24px; border: none; border-radius: 8px; cursor: not-allowed;" disabled>
+            Generate API Key
+        </button>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #f9fafb; border-radius: 8px;">
+            <h4 style="margin: 0 0 15px 0; color: #1a1a1a;">API Documentation</h4>
+            <p style="color: #666; margin: 0 0 15px 0; font-size: 0.9rem;">Learn how to use our API to manage links, analytics, and more.</p>
+            <a href="#" style="color: #667eea; font-weight: 600; text-decoration: none;">View API Docs →</a>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+        <p style="color: #666; margin-bottom: 20px;">Upgrade to Pro to unlock API access</p>
+        <a href="{{ url_for('upgrade') }}" style="background: #667eea; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600;">Upgrade Now</a>
+    </div>
+</div>
+{% endblock %}

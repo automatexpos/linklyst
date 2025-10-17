@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Account Recovery - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+    <div style="text-align: center; margin-bottom: 40px;">
+        <h1 style="font-size: 2rem; color: #1a1a1a; margin-bottom: 10px;">Account Recovery</h1>
+        <p style="color: #666; margin: 0;">Forgot your password? Reset it here or recover your account.</p>
+    </div>
+
+    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+        <h3 style="margin: 0 0 20px 0; color: #1a1a1a;">Reset Password</h3>
+        
+        <form>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Email Address</label>
+                <input type="email" placeholder="Enter your email address" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+
+            <button type="submit" style="width: 100%; background: #667eea; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Send Reset Link
+            </button>
+        </form>
+    </div>
+
+    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 25px;">
+        <h3 style="color: #dc2626; margin: 0 0 15px 0;">Delete Account</h3>
+        <p style="color: #7f1d1d; margin: 0 0 20px 0; font-size: 0.9rem;">
+            Permanently delete your account and all associated data. This action cannot be undone.
+        </p>
+        
+        <button style="background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;" onclick="confirm('Are you sure you want to delete your account? This action cannot be undone.')">
+            Delete Account
+        </button>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <p style="color: #666; margin-bottom: 15px;">Remember your password?</p>
+        <a href="{{ url_for('login') }}" style="color: #667eea; font-weight: 600; text-decoration: none;">Back to Sign In</a>
+    </div>
+</div>
+{% endblock %}

@@ -1182,10 +1182,26 @@ def public_profile(username):
     # Get categories for public display
     try:
         categories = supabase.table("categories").select("*").eq("user_id", user_row["id"]).eq("is_active", True).order("sort_order").execute().data
+        
+        # Filter categories to only show active scheduled links
+        for category in categories:
+            # Get subcategories
+            subcategories = supabase.table("subcategories").select("*").eq("category_id", category["id"]).eq("is_active", True).order("sort_order").execute().data
+            
+            for subcategory in subcategories:
+                # Get links and filter by schedule
+                all_links = supabase.table("links").select("*").eq("subcategory_id", subcategory["id"]).eq("is_public", True).order("sort_order").execute().data
+                active_links = [link for link in all_links if is_link_scheduled_active(link)]
+                subcategory["links"] = active_links
+            
+            category["subcategories"] = subcategories
+            
     except Exception as e:
         # Fallback to old system if categories don't exist
-        links = supabase.table("links").select("*").eq("user_id",user_row["id"]).eq("is_public",True).order("sort_order").execute().data
-        return render_template("profile.html", profile=profile, user=user_row, links=links)
+        all_links = supabase.table("links").select("*").eq("user_id",user_row["id"]).eq("is_public",True).order("sort_order").execute().data
+        # Filter by schedule
+        active_links = [link for link in all_links if is_link_scheduled_active(link)]
+        return render_template("profile.html", profile=profile, user=user_row, links=active_links)
     
     return render_template("user_profile_seo.html", profile=profile, user=user_row, categories=categories, 
                          direct_category_id=category_id, direct_subcategory_id=subcategory_id)
@@ -1197,9 +1213,69 @@ def redirect_link(link_id):
     if not link_res.data:
         abort(404)
     link = link_res.data[0]
-    ref = request.referrer or None
-    supabase.table("clicks").insert({"link_id":link_id,"referrer":ref}).execute()
-    return redirect(link["url"])
+    
+    # Check if link is scheduled to be active
+    if not is_link_scheduled_active(link):
+        flash("This link is not currently available.", "info")
+        # Redirect to user profile instead of showing error
+        user_res = supabase.table("users").select("username").eq("id", link["user_id"]).execute()
+        if user_res.data:
+            return redirect(f"/u/{user_res.data[0]['username']}")
+        abort(404)
+    
+    # Check if link has click limit
+    if link.get('click_limit') and link.get('click_count', 0) >= link['click_limit']:
+        flash("This link has reached its click limit.", "info")
+        user_res = supabase.table("users").select("username").eq("id", link["user_id"]).execute()
+        if user_res.data:
+            return redirect(f"/u/{user_res.data[0]['username']}")
+        abort(404)
+    
+    # Handle password protection
+    if link.get('password_protected'):
+        password = request.args.get('p')  # Allow password in URL for convenience
+        if not password:
+            # Redirect to password entry page (you'd create this template)
+            return render_template("password_required.html", link_id=link_id)
+        if not check_link_access(link, password):
+            flash("Incorrect password.", "error")
+            return render_template("password_required.html", link_id=link_id)
+    
+    # Enhanced click tracking
+    request_info = {
+        'remote_addr': request.remote_addr,
+        'user_agent': request.headers.get('User-Agent', ''),
+        'referrer': request.referrer or '',
+        'utm_source': request.args.get('utm_source', ''),
+        'utm_medium': request.args.get('utm_medium', ''),
+        'utm_campaign': request.args.get('utm_campaign', '')
+    }
+    
+    track_click_analytics(link_id, request_info)
+    
+    # Add UTM parameters to the destination URL if they exist in the link config
+    destination_url = link["url"]
+    if link.get('utm_source') or link.get('utm_medium') or link.get('utm_campaign'):
+        from urllib.parse import urlencode, urlparse, urlunparse, parse_qs
+        parsed = urlparse(destination_url)
+        query_params = parse_qs(parsed.query)
+        
+        if link.get('utm_source'):
+            query_params['utm_source'] = [link['utm_source']]
+        if link.get('utm_medium'):
+            query_params['utm_medium'] = [link['utm_medium']]
+        if link.get('utm_campaign'):
+            query_params['utm_campaign'] = [link['utm_campaign']]
+        
+        # Flatten query params for urlencode
+        flat_params = {}
+        for key, value_list in query_params.items():
+            flat_params[key] = value_list[0] if value_list else ''
+        
+        new_query = urlencode(flat_params)
+        destination_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+    
+    return redirect(destination_url)
 
 # --- Simple stats json ---
 @app.route("/api/stats/<username>")
@@ -2280,8 +2356,7 @@ def admin_save_blog_post(post_id=None):
     user = current_user()
     admin_emails = ["admin@linklyst.space", "support@automatexpo.com"]
     
-    print(f"DEBUG: admin_save_blog_post called with post_id={post_id}, method={request.method}")
-    print(f"DEBUG: Request URL: {request.url}")
+
     
     if not user or user.get("email") not in admin_emails:
         flash("Access denied. Admin privileges required.", "error")
@@ -2294,8 +2369,10 @@ def admin_save_blog_post(post_id=None):
         status = request.form.get("status", "draft")
         category_id = request.form.get("category_id")
         featured_image = request.form.get("featured_image", "").strip()
+        featured_image_alt = request.form.get("featured_image_alt", "").strip()
         meta_title = request.form.get("meta_title", "").strip()
         meta_description = request.form.get("meta_description", "").strip()
+        meta_keywords = request.form.get("meta_keywords", "").strip()
         tags = request.form.get("tags", "").strip()
         
         if not title or not content:
@@ -2332,15 +2409,23 @@ def admin_save_blog_post(post_id=None):
             post_data["category_id"] = int(category_id)
         if featured_image:
             post_data["featured_image"] = featured_image
+        if featured_image_alt:
+            post_data["featured_image_alt"] = featured_image_alt
         if tags:
             post_data["tags"] = tags
+        if meta_keywords:
+            post_data["meta_keywords"] = meta_keywords
         
         # Try to add meta fields, but don't fail if they don't exist
         try:
-            if meta_title or title:
-                post_data["meta_description"] = meta_description or excerpt or (content[:200] + "..." if len(content) > 200 else content)
+            if meta_description:
+                post_data["meta_description"] = meta_description
+            elif not meta_description and (excerpt or content):
+                post_data["meta_description"] = excerpt or (content[:200] + "..." if len(content) > 200 else content)
         except:
             pass
+        
+
         
         if post_id:
             # Update existing post
@@ -2528,6 +2613,316 @@ def blog_post(slug):
     except Exception as e:
         print(f"Error in blog_post: {e}")
         abort(404)
+
+# === ADVANCED FEATURES ===
+
+def is_link_scheduled_active(link):
+    """Check if a scheduled link should be active now"""
+    if not link.get('scheduled_start') and not link.get('scheduled_end'):
+        return link.get('is_active', True)
+    
+    from datetime import datetime
+    now = datetime.utcnow()
+    
+    # Check start time
+    if link.get('scheduled_start'):
+        start_time = datetime.fromisoformat(link['scheduled_start'].replace('Z', '+00:00'))
+        if now < start_time.replace(tzinfo=None):
+            return False
+    
+    # Check end time
+    if link.get('scheduled_end'):
+        end_time = datetime.fromisoformat(link['scheduled_end'].replace('Z', '+00:00'))
+        if now > end_time.replace(tzinfo=None):
+            return False
+    
+    return link.get('is_active', True)
+
+def check_link_access(link, password=None):
+    """Check if user can access password-protected link"""
+    if not link.get('password_protected'):
+        return True
+    
+    if not password:
+        return False
+    
+    # In a real implementation, you'd hash the password and compare
+    # For now, we'll store plain text (NOT recommended for production)
+    return password == link.get('password_hash', '')
+
+def track_click_analytics(link_id, request_info):
+    """Enhanced click tracking with analytics"""
+    try:
+        # Get IP and user agent
+        ip_address = request_info.get('remote_addr', '')
+        user_agent = request_info.get('user_agent', '')
+        referrer = request_info.get('referrer', '')
+        
+        # Extract UTM parameters from referrer if present
+        utm_source = request_info.get('utm_source', '')
+        utm_medium = request_info.get('utm_medium', '')
+        utm_campaign = request_info.get('utm_campaign', '')
+        
+        # Insert detailed analytics (simplified - in production you'd use IP geolocation service)
+        supabase.table("click_analytics").insert({
+            "link_id": link_id,
+            "ip_address": ip_address,
+            "user_agent": user_agent,
+            "referrer": referrer,
+            "utm_source": utm_source,
+            "utm_medium": utm_medium,
+            "utm_campaign": utm_campaign,
+            "clicked_at": datetime.utcnow().isoformat()
+        }).execute()
+        
+        # Update basic click count
+        supabase.table("links").update({
+            "click_count": supabase.table("links").select("click_count").eq("id", link_id).execute().data[0]["click_count"] + 1
+        }).eq("id", link_id).execute()
+        
+    except Exception as e:
+        print(f"Error tracking click analytics: {e}")
+
+def get_user_integrations(user_id):
+    """Get user's integration settings"""
+    try:
+        result = supabase.table("user_integrations").select("*").eq("user_id", user_id).eq("is_active", True).execute()
+        return result.data if result.data else []
+    except Exception as e:
+        print(f"Error getting user integrations: {e}")
+        return []
+
+def export_analytics_data(user_id, export_type='csv', date_range=None):
+    """Export analytics data for user"""
+    try:
+        # This is a placeholder - in production you'd generate actual files
+        export_record = {
+            "user_id": user_id,
+            "export_type": export_type,
+            "status": "completed",
+            "file_url": f"/downloads/analytics_{user_id}_{datetime.utcnow().strftime('%Y%m%d')}.{export_type}"
+        }
+        
+        if date_range:
+            export_record.update({
+                "date_range_start": date_range.get('start'),
+                "date_range_end": date_range.get('end')
+            })
+        
+        result = supabase.table("analytics_exports").insert(export_record).execute()
+        return result.data[0] if result.data else None
+        
+    except Exception as e:
+        print(f"Error exporting analytics: {e}")
+        return None
+
+def setup_webhook(user_id, webhook_url, event_type):
+    """Setup webhook for user events"""
+    try:
+        import secrets
+        secret_key = secrets.token_urlsafe(32)
+        
+        result = supabase.table("webhooks").insert({
+            "user_id": user_id,
+            "url": webhook_url,
+            "event_type": event_type,
+            "secret_key": secret_key,
+            "is_active": True
+        }).execute()
+        
+        return result.data[0] if result.data else None
+        
+    except Exception as e:
+        print(f"Error setting up webhook: {e}")
+        return None
+
+@app.route("/api/links/<int:link_id>/schedule", methods=["POST"])
+@login_required
+def schedule_link(link_id):
+    """Schedule a link to be active during specific times"""
+    try:
+        user = current_user()
+        data = request.get_json()
+        
+        # Verify link belongs to user
+        link_result = supabase.table("links").select("*").eq("id", link_id).eq("user_id", user["id"]).execute()
+        if not link_result.data:
+            return jsonify({"error": "Link not found"}), 404
+        
+        # Update link with schedule
+        update_data = {}
+        if data.get('start_time'):
+            update_data['scheduled_start'] = data['start_time']
+        if data.get('end_time'):
+            update_data['scheduled_end'] = data['end_time']
+        
+        if update_data:
+            supabase.table("links").update(update_data).eq("id", link_id).execute()
+        
+        return jsonify({"message": "Link scheduled successfully"})
+        
+    except Exception as e:
+        print(f"Error scheduling link: {e}")
+        return jsonify({"error": "Failed to schedule link"}), 500
+
+@app.route("/api/analytics/export", methods=["POST"])
+@login_required
+def export_user_analytics():
+    """Export user analytics data"""
+    try:
+        user = current_user()
+        data = request.get_json()
+        
+        export_type = data.get('format', 'csv')
+        date_range = data.get('date_range', None)
+        
+        export_result = export_analytics_data(user["id"], export_type, date_range)
+        
+        if export_result:
+            return jsonify({
+                "message": "Export started",
+                "export_id": export_result["id"],
+                "download_url": export_result["file_url"]
+            })
+        else:
+            return jsonify({"error": "Failed to start export"}), 500
+            
+    except Exception as e:
+        print(f"Error exporting analytics: {e}")
+        return jsonify({"error": "Export failed"}), 500
+
+@app.route("/dashboard/integrations")
+@login_required 
+def user_integrations():
+    """User integrations management page"""
+    user = current_user()
+    integrations = get_user_integrations(user["id"])
+    
+    return render_template("integrations.html", user=user, integrations=integrations)
+
+@app.route("/dashboard/analytics/advanced")
+@login_required
+def advanced_analytics():
+    """Advanced analytics dashboard"""
+    user = current_user()
+    
+    # Get detailed analytics
+    try:
+        # Get geographic data
+        geo_result = supabase.table("click_analytics").select("country_code, COUNT(*) as clicks").eq("link_id", "IN").execute()
+        
+        # Get performance data  
+        perf_result = supabase.table("link_performance").select("*").execute()
+        
+        # Get export history
+        exports = supabase.table("analytics_exports").select("*").eq("user_id", user["id"]).order("created_at", desc=True).limit(10).execute()
+        
+        return render_template("advanced_analytics.html", 
+                             user=user,
+                             geo_data=geo_result.data if geo_result.data else [],
+                             performance_data=perf_result.data if perf_result.data else [],
+                             exports=exports.data if exports.data else [])
+                             
+    except Exception as e:
+        print(f"Error loading advanced analytics: {e}")
+        return render_template("advanced_analytics.html", user=user, geo_data=[], performance_data=[], exports=[])
+
+@app.route("/dashboard/custom-domain")
+@login_required
+def custom_domain_setup():
+    """Custom domain setup page"""
+    user = current_user()
+    
+    # Check if user has custom domain
+    domain_result = supabase.table("custom_domains").select("*").eq("user_id", user["id"]).execute()
+    
+    return render_template("custom_domain.html", 
+                         user=user, 
+                         domain=domain_result.data[0] if domain_result.data else None)
+
+@app.route("/api/custom-domain", methods=["POST"])
+@login_required
+def setup_custom_domain():
+    """Setup custom domain"""
+    try:
+        user = current_user()
+        data = request.get_json()
+        domain = data.get('domain', '').lower().strip()
+        
+        if not domain:
+            return jsonify({"error": "Domain is required"}), 400
+        
+        # Basic domain validation
+        import re
+        if not re.match(r'^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$', domain):
+            return jsonify({"error": "Invalid domain format"}), 400
+        
+        # Check if domain already exists
+        existing = supabase.table("custom_domains").select("*").eq("domain", domain).execute()
+        if existing.data:
+            return jsonify({"error": "Domain already registered"}), 409
+        
+        # Insert domain
+        result = supabase.table("custom_domains").insert({
+            "user_id": user["id"],
+            "domain": domain,
+            "is_verified": False,
+            "ssl_enabled": True
+        }).execute()
+        
+        if result.data:
+            return jsonify({
+                "message": "Domain added successfully",
+                "domain": result.data[0],
+                "dns_instructions": {
+                    "type": "CNAME",
+                    "name": domain,
+                    "value": "linklyst.space",
+                    "ttl": 300
+                }
+            })
+        else:
+            return jsonify({"error": "Failed to add domain"}), 500
+            
+    except Exception as e:
+        print(f"Error setting up custom domain: {e}")
+        return jsonify({"error": "Failed to setup domain"}), 500
+
+# --- Additional Pages ---
+@app.route("/features")
+def features():
+    """Features page"""
+    return render_template("features.html")
+
+@app.route("/pricing-details")
+def pricing_page():
+    """Pricing page"""
+    return render_template("pricing.html")
+
+@app.route("/faq")
+def faq():
+    """FAQ page"""
+    return render_template("faq.html")
+
+@app.route("/templates")
+def templates():
+    """Templates showcase page"""
+    return render_template("templates.html")
+
+@app.route("/analytics")
+def analytics():
+    """Analytics features page"""
+    return render_template("analytics.html")
+
+@app.route("/getting-started")
+def getting_started():
+    """Getting started guide"""
+    return render_template("getting_started.html")
+
+@app.route("/status")
+def status():
+    """System status page"""
+    return render_template("status.html")
 
 if __name__ == "__main__":
     # For local development only

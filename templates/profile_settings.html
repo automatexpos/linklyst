@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Settings - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+    <div style="margin-bottom: 40px;">
+        <h1 style="font-size: 2rem; color: #1a1a1a; margin-bottom: 10px;">Profile Settings</h1>
+        <p style="color: #666; margin: 0;">Manage your profile information and preferences.</p>
+    </div>
+
+    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 30px;">
+        <form method="POST" action="{{ url_for('edit_profile') }}">
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Display Name</label>
+                <input type="text" name="display_name" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Your display name">
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Bio</label>
+                <textarea name="bio" rows="3" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="Tell people about yourself..."></textarea>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Avatar URL</label>
+                <input type="url" name="avatar_url" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;" placeholder="https://example.com/your-photo.jpg">
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Theme</label>
+                <select name="theme" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+                    <option value="default">Default</option>
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <option value="colorful">Colorful</option>
+                    <option value="minimal">Minimal</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Layout</label>
+                <select name="layout_theme" style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+                    <option value="grid">Grid Layout</option>
+                    <option value="list">List Layout</option>
+                    <option value="cards">Card Layout</option>
+                    <option value="minimal-list">Minimal List</option>
+                </select>
+            </div>
+
+            <button type="submit" style="background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Save Changes
+            </button>
+        </form>
+    </div>
+
+    <div style="margin-top: 40px; padding: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
+        <h3 style="color: #dc2626; margin: 0 0 10px 0;">Danger Zone</h3>
+        <p style="color: #7f1d1d; margin: 0 0 15px 0; font-size: 0.9rem;">These actions cannot be undone.</p>
+        <a href="{{ url_for('account_recovery') }}" style="color: #dc2626; text-decoration: none; font-weight: 600;">Delete Account</a>
+    </div>
+</div>
+{% endblock %}

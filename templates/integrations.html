@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Integrations - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 2.5rem; color: #1a1a1a; margin-bottom: 20px;">Integrations</h1>
+        <p style="font-size: 1.2rem; color: #666; max-width: 600px; margin: 0 auto;">
+            Connect your favorite tools and platforms to supercharge your link-in-bio experience.
+        </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="width: 60px; height: 60px; background: #1DA1F2; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <span style="color: white; font-size: 24px;">🐦</span>
+            </div>
+            <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Twitter</h3>
+            <p style="color: #666; margin: 0 0 20px 0;">Auto-update your bio link when you post new content.</p>
+            <span style="background: #f3f4f6; color: #6b7280; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem;">Coming Soon</span>
+        </div>
+
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="width: 60px; height: 60px; background: #E4405F; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <span style="color: white; font-size: 24px;">📸</span>
+            </div>
+            <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Instagram</h3>
+            <p style="color: #666; margin: 0 0 20px 0;">Sync your Instagram posts and stories automatically.</p>
+            <span style="background: #f3f4f6; color: #6b7280; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem;">Coming Soon</span>
+        </div>
+
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="width: 60px; height: 60px; background: #FF5722; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <span style="color: white; font-size: 24px;">📧</span>
+            </div>
+            <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Email Marketing</h3>
+            <p style="color: #666; margin: 0 0 20px 0;">Integrate with Mailchimp, ConvertKit, and more.</p>
+            <span style="background: #f3f4f6; color: #6b7280; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem;">Coming Soon</span>
+        </div>
+
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="width: 60px; height: 60px; background: #4285F4; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <span style="color: white; font-size: 24px;">📊</span>
+            </div>
+            <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Google Analytics</h3>
+            <p style="color: #666; margin: 0 0 20px 0;">Track your performance with Google Analytics.</p>
+            <span style="background: #f3f4f6; color: #6b7280; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem;">Coming Soon</span>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 60px; padding: 40px; background: #f9fafb; border-radius: 12px;">
+        <h2 style="margin-bottom: 20px; color: #1a1a1a;">Request an Integration</h2>
+        <p style="color: #666; margin-bottom: 30px;">Don't see the integration you need? Let us know!</p>
+        <button onclick="openSupportModal()" style="background: #667eea; color: white; padding: 15px 30px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">Request Integration</button>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Getting Started - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 2.5rem; color: #1a1a1a; margin-bottom: 20px;">Getting Started Guide</h1>
+        <p style="font-size: 1.2rem; color: #666;">
+            Welcome to Linklyst! Follow this quick guide to set up your link-in-bio page in minutes.
+        </p>
+    </div>
+
+    <div style="margin-bottom: 40px;">
+        <div style="display: flex; align-items: center; margin-bottom: 30px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+            <div style="width: 40px; height: 40px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px; font-weight: bold;">1</div>
+            <div>
+                <h3 style="margin: 0 0 8px 0; color: #1a1a1a;">Create Your Account</h3>
+                <p style="margin: 0; color: #666;">Sign up for free and claim your unique username.</p>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 30px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+            <div style="width: 40px; height: 40px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px; font-weight: bold;">2</div>
+            <div>
+                <h3 style="margin: 0 0 8px 0; color: #1a1a1a;">Customize Your Profile</h3>
+                <p style="margin: 0; color: #666;">Add your bio, avatar, and choose a theme that matches your brand.</p>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 30px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+            <div style="width: 40px; height: 40px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px; font-weight: bold;">3</div>
+            <div>
+                <h3 style="margin: 0 0 8px 0; color: #1a1a1a;">Add Your Links</h3>
+                <p style="margin: 0; color: #666;">Create categories and add all your important links in an organized way.</p>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-bottom: 30px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+            <div style="width: 40px; height: 40px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px; font-weight: bold;">4</div>
+            <div>
+                <h3 style="margin: 0 0 8px 0; color: #1a1a1a;">Share Your Page</h3>
+                <p style="margin: 0; color: #666;">Copy your link and share it on social media, email signatures, and more!</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: #f9fafb; padding: 40px; border-radius: 12px; text-align: center;">
+        <h2 style="margin-bottom: 20px; color: #1a1a1a;">Need Help?</h2>
+        <p style="color: #666; margin-bottom: 30px;">Our support team is here to help you succeed.</p>
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="openSupportModal()" style="background: #667eea; color: white; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer;">Contact Support</button>
+            <a href="{{ url_for('tutorials') }}" style="background: #f3f4f6; color: #374151; padding: 12px 24px; border-radius: 8px; text-decoration: none;">View Tutorials</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

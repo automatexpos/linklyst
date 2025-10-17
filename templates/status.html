@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}System Status - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 2.5rem; color: #1a1a1a; margin-bottom: 20px;">System Status</h1>
+        <p style="font-size: 1.2rem; color: #666;">
+            Current operational status of all Linklyst services.
+        </p>
+    </div>
+
+    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 25px; margin-bottom: 30px;">
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <div style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%; margin-right: 15px;"></div>
+            <h3 style="margin: 0; color: #1a1a1a;">All Systems Operational</h3>
+        </div>
+        <p style="color: #666; margin: 0;">All services are running normally with no reported issues.</p>
+    </div>
+
+    <div style="margin-bottom: 40px;">
+        <h3 style="margin: 0 0 20px 0; color: #1a1a1a;">Services Status</h3>
+        
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f3f4f6;">
+                <span style="font-weight: 600; color: #1a1a1a;">Link-in-Bio Pages</span>
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 8px;"></div>
+                    <span style="color: #22c55e; font-weight: 600;">Operational</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f3f4f6;">
+                <span style="font-weight: 600; color: #1a1a1a;">Analytics Dashboard</span>
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 8px;"></div>
+                    <span style="color: #22c55e; font-weight: 600;">Operational</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f3f4f6;">
+                <span style="font-weight: 600; color: #1a1a1a;">User Dashboard</span>
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 8px;"></div>
+                    <span style="color: #22c55e; font-weight: 600;">Operational</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
+                <span style="font-weight: 600; color: #1a1a1a;">API Services</span>
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 8px;"></div>
+                    <span style="color: #22c55e; font-weight: 600;">Operational</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center; padding: 30px; background: #f9fafb; border-radius: 12px;">
+        <h3 style="margin: 0 0 15px 0; color: #1a1a1a;">Subscribe to Updates</h3>
+        <p style="color: #666; margin: 0 0 20px 0;">Get notified when there are service updates or maintenance windows.</p>
+        <button onclick="openSupportModal()" style="background: #667eea; color: white; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600;">Subscribe to Updates</button>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Help Center - Linklyst Space{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 2.5rem; color: #1a1a1a; margin-bottom: 20px;">Help Center</h1>
+        <p style="font-size: 1.2rem; color: #666;">
+            Find answers to common questions and get the help you need.
+        </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 50px;">
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">📚</div>
+            <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Documentation</h3>
+            <p style="color: #666; margin: 0 0 20px 0;">Comprehensive guides and API documentation.</p>
+            <a href="{{ url_for('tutorials') }}" style="color: #667eea; font-weight: 600; text-decoration: none;">Browse Docs →</a>
+        </div>
+
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">💬</div>
+            <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Contact Support</h3>
+            <p style="color: #666; margin: 0 0 20px 0;">Get help from our friendly support team.</p>
+            <button onclick="openSupportModal()" style="color: #667eea; font-weight: 600; background: none; border: none; cursor: pointer; text-decoration: underline;">Get Support →</button>
+        </div>
+
+        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">🎯</div>
+            <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Quick Start</h3>
+            <p style="color: #666; margin: 0 0 20px 0;">Get up and running in just a few minutes.</p>
+            <a href="{{ url_for('getting_started') }}" style="color: #667eea; font-weight: 600; text-decoration: none;">Get Started →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
